@@ -11,7 +11,7 @@ const initialState: GameBoard = [
 
 const App = () => {
   const [board, setBoard] = useState(initialState);
-  const [isXTurn, setIsXTurn] = useState(false);
+  const [isXTurn, setIsXTurn] = useState(true);
 
   const handleClickSquare = (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => {
     setBoard(existing => {
@@ -37,6 +37,12 @@ const App = () => {
         board={board}
         handleClickSquare={handleClickSquare}
       />
+      <button onClick={(): void => {
+        setBoard(initialState);
+        setIsXTurn(true);
+      }}>
+        New Game
+      </button>
     </>
   )
 }
