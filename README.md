@@ -1,6 +1,11 @@
 # tic-tac-toe
 In-browser real-time tic-tac-toe game
 
+# Work Log
+ - 6/17: 3pm-4pm - planning
+ - 6/18: 10am-11:30am - project setup & first req: https://tic-tac-fg0mwzkny-acamann.vercel.app/
+ - 6/18: 2pm-3pm - connect to supabase, generate pairing code
+
 # Requirements
  - [x] User can create a new game board
  - [ ] Allow two (and only two) players to connect to a game board

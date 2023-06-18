@@ -1,49 +1,37 @@
 import './App.css'
-import { GameBoard } from './types/models'
 import Board from './components/Board'
-import { useState } from 'react'
+import { GameContextProvider, useGameContext } from './context/GameContext'
 
-const initialState: GameBoard = [
-  [undefined, undefined, undefined],
-  [undefined, undefined, undefined],
-  [undefined, undefined, undefined],
-]
-
-const App = () => {
-  const [board, setBoard] = useState(initialState);
-  const [isXTurn, setIsXTurn] = useState(true);
-
-  const handleClickSquare = (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => {
-    setBoard(existing => {
-      return existing.map((row, i) => {
-        if (i !== rowIndex) return row;
-        else {
-          return row.map((square, j) => {
-            if (j !== colIndex) return square;
-            else {
-              return isXTurn ? "X" : "O";
-            }
-          });
-        }
-      }) as GameBoard;
-    });
-    setIsXTurn(existingValue => !existingValue);
-  }
-
+const Game = () => {
+  const { createGame, game, handleMove, error } = useGameContext();
   return (
     <>
       <h1>Tic Tac Toe</h1>
-      <Board
-        board={board}
-        handleClickSquare={handleClickSquare}
-      />
-      <button onClick={(): void => {
-        setBoard(initialState);
-        setIsXTurn(true);
+      <button onClick={async (): Promise<void> => {
+        await createGame();
       }}>
         New Game
       </button>
+      <h2 style={{ color: "red" }}>{error}</h2>
+      {game && (
+        <>
+          <h2>Pairing Code: {game.pairingCode}</h2>
+          <Board
+            board={game.board}
+            handleClickSquare={handleMove}
+          />
+        </>
+      )}
     </>
+  )
+}
+
+const App = () => {
+
+  return (
+    <GameContextProvider>
+      <Game />
+    </GameContextProvider>
   )
 }
 
