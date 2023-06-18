@@ -14,9 +14,10 @@ const Board = ({
   return (
     <div className="board">
       {board.map((row, rowIndex) => (
-        <div className="row">
+        <div className="row" key={rowIndex}>
           {row.map((squareValue, colIndex) => (
             <Square
+              key={`${rowIndex}-${colIndex}`}
               value={squareValue}
               onClick={(): void => handleClickSquare(rowIndex as 0 | 1 | 2, colIndex as 0 | 1 | 2)}
             />
