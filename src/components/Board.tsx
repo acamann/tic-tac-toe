@@ -11,9 +11,9 @@ const Board = ({
 }: Props) => {
   return (
     <div className="board">
-      {board.map((row, rowIndex) => (
+      {board.map((row) => (
         <div className="row">
-          {row.map((squareValue, colIndex) => (
+          {row.map((squareValue) => (
             <Square value={squareValue} />
           ))}
         </div>
