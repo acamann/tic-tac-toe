@@ -21,6 +21,14 @@
   border-right: solid 1px darkgray;
 }
 
+@media (max-width: 480px) {
+  .board .row > * {
+    width: 100px;
+    height: 100px;
+    font-size: 5em;
+  }
+}
+
 .board .row > *:last-of-type {
   border-right: none;
 }
