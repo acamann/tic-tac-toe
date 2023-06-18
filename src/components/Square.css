@@ -1,0 +1,14 @@
+.square {
+  line-height: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: unset;
+  border-radius: unset;
+  padding: unset;
+  background-color: unset;
+}
+
+.square:disabled {
+  cursor: default;
+}

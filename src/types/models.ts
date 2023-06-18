@@ -4,4 +4,4 @@ export type GameBoard = [
   [SquareValue, SquareValue, SquareValue],
   [SquareValue, SquareValue, SquareValue],
   [SquareValue, SquareValue, SquareValue]
-]; 
+];
