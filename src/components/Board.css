@@ -1,0 +1,29 @@
+.board {
+  display: flex;
+  flex-direction: column;
+}
+
+.board .row {
+  display: flex;
+  flex-direction: row;
+  border-bottom: solid 1px darkgray;
+}
+
+.board .row:last-of-type {
+  border-bottom: none;
+}
+
+.board .row > * {
+  width: 200px;
+  height: 200px;
+  font-size: 10em;
+  line-height: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: solid 1px darkgray;
+}
+
+.board .row > *:last-of-type {
+  border-right: none;
+}
