@@ -11,11 +11,12 @@ In-browser real-time tic-tac-toe game
 
 # Game Plan
  1. design DB models, rough UI
-   - AccessCodes: code, game_id, request_date (added when first player creates game, removed when paired or expired)
+   - PairingCodes: code, player_id, creation_date
    - Game: game_id, player_1, player_2, board, outcome?, start_date, end_date
    - Leaderboard: player_id, wins, losses, draws
  2. project set up 
-   - static client site, connect to supabase (investigate further)
+   - static client site - vite with vanilla react app, typescript
+   - connect directly to supabase db
    - persist current game_id, player_id in local storage
  3. v0.1 - deploy empty game board
  4. v0.2 - two player connection
