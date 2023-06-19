@@ -61,6 +61,7 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
   //const [isXTurn, setIsXTurn] = useState(true);
 
   const handleMove = (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => {
+    console.log(rowIndex, colIndex);
     // setGame(existing => {
     //   if (!existing) return undefined;
     //   return {
