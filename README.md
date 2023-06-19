@@ -5,10 +5,11 @@ In-browser real-time tic-tac-toe game
  - 6/17: 3pm-4pm - planning
  - 6/18: 10am-11:30am - project setup & first req: https://tic-tac-fg0mwzkny-acamann.vercel.app/
  - 6/18: 2pm-3pm - connect to supabase, generate pairing code
+ - 6/18: 9:30pm-10:30pm - enter username, join with code
 
 # Requirements
  - [x] User can create a new game board
- - [ ] Allow two (and only two) players to connect to a game board
+ - [x] Allow two (and only two) players to connect to a game board
  - [ ] Persist game state on the server in a database of your choice
  - [ ] Follow standard rules for tic-tac-toe (or noughts and crosses)
  - [ ] Display the game result and persist in the database at the end of the game
@@ -24,7 +25,7 @@ In-browser real-time tic-tac-toe game
     - connect directly to supabase db
     - persist current game_id, player_id in local storage
  3. [x] v0.1 - deploy empty game board
- 4. [ ] v0.2 - two player connection
+ 4. [x] v0.2 - two player connection
     - first player creates game
     - ABCD game code generaged
     - first player polls db for player 2 join
