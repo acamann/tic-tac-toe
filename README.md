@@ -6,6 +6,8 @@ In-browser real-time tic-tac-toe game
  - 6/18: 10am-11:30am - project setup & first req: https://tic-tac-fg0mwzkny-acamann.vercel.app/
  - 6/18: 2pm-3pm - connect to supabase, generate pairing code
  - 6/18: 9:30pm-10:30pm - enter username, join with code
+ - 6/20: 9:30pm-10:30pm - prop up express api (revisit later)
+ - 6/22: 8am-9am - subscribe to channel w game changes
 
 # Requirements
  - [x] User can create a new game board
@@ -39,6 +41,7 @@ In-browser real-time tic-tac-toe game
     - wargames theme
 
 # Future work:
+ - maybe store array of moves instead
  - clean up old access codes, unfinished games in db
  - stop polling
  - add winning percentage to leader board

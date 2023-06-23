@@ -15,9 +15,9 @@ const Square = ({
     <button
       className="square"
       onClick={onClick}
-      disabled={value !== undefined}
+      disabled={value !== null}
     >
-      {value}
+      {value === 0 ? "O" : value === 1 ? "X" : undefined}
     </button>
   )
 }
