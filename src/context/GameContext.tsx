@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { GameBoard } from "../types/models";
 import { getNewBoard, getWinner, initialBoardState, isValidMove } from "./BoardUtils";

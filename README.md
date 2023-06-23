@@ -8,11 +8,12 @@ In-browser real-time tic-tac-toe game
  - 6/18: 9:30pm-10:30pm - enter username, join with code
  - 6/20: 9:30pm-10:30pm - prop up express api (revisit later)
  - 6/22: 8am-9am - subscribe to channel w game changes
+ - 6/23: 6:30am-7:30am - win logic, show result
 
 # Requirements
  - [x] User can create a new game board
  - [x] Allow two (and only two) players to connect to a game board
- - [ ] Persist game state on the server in a database of your choice
+ - [x] Persist game state on the server in a database of your choice
  - [ ] Follow standard rules for tic-tac-toe (or noughts and crosses)
  - [ ] Display the game result and persist in the database at the end of the game
  - [ ] Display a ranking of the top five players and allow players to start a new game
@@ -33,7 +34,7 @@ In-browser real-time tic-tac-toe game
     - first player polls db for player 2 join
     - second player joins, enters code
     - game code removed from db
- 5. [ ] v0.3 - full game rules & persist state
+ 5. [x] v0.3 - full game rules & persist state
  6. [ ] v0.4 - game result
  7. [ ] v0.5 - leader board
  8. [ ] v0.6 - both players can continue playing
