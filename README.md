@@ -14,8 +14,8 @@ In-browser real-time tic-tac-toe game
  - [x] User can create a new game board
  - [x] Allow two (and only two) players to connect to a game board
  - [x] Persist game state on the server in a database of your choice
- - [ ] Follow standard rules for tic-tac-toe (or noughts and crosses)
- - [ ] Display the game result and persist in the database at the end of the game
+ - [x] Follow standard rules for tic-tac-toe (or noughts and crosses)
+ - [x] Display the game result and persist in the database at the end of the game
  - [ ] Display a ranking of the top five players and allow players to start a new game
 
 # Game Plan
@@ -35,7 +35,7 @@ In-browser real-time tic-tac-toe game
     - second player joins, enters code
     - game code removed from db
  5. [x] v0.3 - full game rules & persist state
- 6. [ ] v0.4 - game result
+ 6. [x] v0.4 - game result
  7. [ ] v0.5 - leader board
  8. [ ] v0.6 - both players can continue playing
  8. [ ] v0.7 - make it look pleasant

@@ -46,11 +46,11 @@ const Game = () => {
           <div>
             Pairing Code:
             <input
-              onChange={(e) => setJoinCode(e.target.value)}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
               value={joinCode}
             />
             <button
-              onClick={async () => await joinGame(joinCode)}
+              onClick={() => joinGame(joinCode)}
               disabled={username.length < 3 || joinCode.length < 3}
             >
               Join Game
@@ -59,6 +59,16 @@ const Game = () => {
         </>
       ) : (
         <>
+          <div>
+            <div>
+              O: {game.player0} {game.current_turn === 0 && "<"}
+              {game.winner === 0 && "- WINNER!"}
+            </div>
+            <div>
+              X: {game.player1} {game.current_turn === 1 && "<"}
+              {game.winner === 1 && "- WINNER!"}
+            </div>
+          </div>
           <Board
             board={game.board}
             handleClickSquare={handleMove}

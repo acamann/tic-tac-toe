@@ -27,9 +27,9 @@ type Game = {
   board: GameBoard;
   player0: string;
   player1: string;
-  current_turn: boolean;
+  current_turn?: 0 | 1;
   self: 0 | 1;
-  winner: 0 | 1;
+  winner?: 0 | 1;
 }
 
 type GameContextType = {
@@ -62,17 +62,21 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
   const [pairingCode, setPairingCode] = useState<string>("");
   const [game, setGame] = useState<Game | undefined>(undefined);
 
+  const [username, setUsername] = useState("");
+  const [error, setError] = useState("");
+
   const handleMove = async (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => {
+    setError("");
     try
     {
       if (!game) {
         throw new Error("Unknown game");
       }
-      if (game.winner) {
-        throw new Error(`Game is over! Player ${+game.winner + 1} wins!`)
+      if (game.winner !== undefined) {
+        throw new Error(`Game over: ${game.winner === 0 ? game.player0 : game.player1} wins!`)
       }
-      if (+game.current_turn !== game.self) {
-        game && console.log(+game.current_turn, game.self)
+      if (game.current_turn !== game.self) {
+        game && console.log(game.current_turn, game.self)
         throw new Error("It's not your turn");
       }
       if (!isValidMove) {
@@ -91,8 +95,8 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
         .from('Games')
         .update({
           board: newBoard,
-          current_turn: winner === null ? !game.current_turn : null,
-          winner
+          current_turn: winner !== undefined ? game.current_turn === 0 ? true : false : null,
+          winner: winner === 1 ? true : winner === 0 ? false : null
         })
         .eq('game_id', game.game_id)
 
@@ -103,9 +107,6 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
       setError((e as { message: string }).message ?? "Unknown Problem");
     }
   }
-
-  const [username, setUsername] = useState("");
-  const [error, setError] = useState("");
 
   // const initializeUser = () => {
   //   const user = supabase.auth.user();
@@ -140,13 +141,16 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
           //   to prevent everyone getting spammed by everyone elses game
           return;
         }
+        setError("");
 
         setGame(current => ({
           ...current,
-          ...payload.new
+          ...payload.new,
+          current_turn: payload.new.current_turn === true ? 1 : payload.new.current_turn === false ? 0 : undefined,
+          winner: payload.new.winner === true ? 1 : payload.new.winner === false ? 0 : undefined
         } as Game));
 
-        if (payload.new.winner) {
+        if (payload.new.winner !== null) {
           channel.unsubscribe();
         }
       }
@@ -169,6 +173,8 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
 
     setGame({
       ...gameData,
+      current_turn: gameData.current_turn === true ? 1 : gameData.current_turn === false ? 0 : undefined,
+      winner: gameData.winner === true ? 1 : gameData.winner === false ? 0 : undefined,
       self: 0
     });
 
@@ -289,6 +295,8 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
     } else {
       setGame({
         ...gameData,
+        current_turn: gameData.current_turn === true ? 1 : gameData.current_turn === false ? 0 : undefined,
+        winner: gameData.winner === true ? 1 : gameData.winner === false ? 0 : undefined,
         self: 1
       });
     }
