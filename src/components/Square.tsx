@@ -3,19 +3,20 @@ import './Square.css'
 
 type Props = {
   value: SquareValue;
+  disabled?: boolean;
   onClick: () => void;
 }
 
 const Square = ({
   value,
+  disabled = false,
   onClick
 }: Props) => {
-
   return (
     <button
       className="square"
       onClick={onClick}
-      disabled={value !== null}
+      disabled={disabled || value !== null}
     >
       {value === 0 ? "O" : value === 1 ? "X" : undefined}
     </button>

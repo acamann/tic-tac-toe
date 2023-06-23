@@ -11,4 +11,5 @@
 
 .square:disabled {
   cursor: default;
+  color: unset;
 }

@@ -1,6 +1,7 @@
 import { GameBoard } from "../types/models";
 import Square from "./Square";
 import './Board.css'
+import { useGameContext } from "../context/GameContext";
 
 type Props = {
   board: GameBoard;
@@ -11,6 +12,8 @@ const Board = ({
   board,
   handleClickSquare
 }: Props) => {
+  const { game } = useGameContext();
+
   return (
     <div className="board">
       {board.map((row, rowIndex) => (
@@ -19,6 +22,7 @@ const Board = ({
             <Square
               key={`${rowIndex}-${colIndex}`}
               value={squareValue}
+              disabled={game?.winner !== undefined}
               onClick={(): void => handleClickSquare(rowIndex as 0 | 1 | 2, colIndex as 0 | 1 | 2)}
             />
           ))}
