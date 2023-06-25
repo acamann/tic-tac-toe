@@ -1,0 +1,41 @@
+.authenticate {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.authenticate form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 16px;
+  background-color: lightgray;
+}
+
+.authenticate form h2 {
+  margin: 0;
+}
+
+.authenticate form fieldset {
+  border: 0;
+}
+
+.authenticate form button {
+  align-self: center;
+}
+
+.authenticate .mode {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.authenticate .mode a {
+  cursor: pointer;
+}
+
+.authenticate .error {
+  font-weight: bold;
+  color: lightcoral;
+}

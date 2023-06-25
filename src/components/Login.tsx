@@ -19,7 +19,9 @@ const Login = () => {
         return;
       }
       const { error } = await login(emailRef.current.value, passwordRef.current.value);
-      if (error) setErrorMsg(error.message);
+      if (error) {
+        setErrorMsg(error.message);
+      }
     } catch (error) {
       setErrorMsg("Email or Password Incorrect");
     }
@@ -27,32 +29,25 @@ const Login = () => {
   };
 
   return (
-    <>
-      <h2 className="text-center mb-4">Login</h2>
-      <form onSubmit={handleSubmit}>
-        <fieldset id="email">
-          <label>Email</label>
-          <input type="email" ref={emailRef} required />
-        </fieldset>
-        <fieldset id="password">
-          <label>Password</label>
-          <input type="password" ref={passwordRef} required />
-        </fieldset>
-        {errorMsg && (
-          <div
-            style={{ color: "red" }}
-            onClick={() => setErrorMsg("")}
-          >
-            {errorMsg}
-          </div>
-        )}
-        <div className="text-center mt-2">
-          <button disabled={loading} type="submit" className="w-50">
-            Login
-          </button>
+    <form onSubmit={handleSubmit}>
+      <h2>Login</h2>
+      <fieldset id="email">
+        <label>Email</label>
+        <input type="email" ref={emailRef} required />
+      </fieldset>
+      <fieldset id="password">
+        <label>Password</label>
+        <input type="password" ref={passwordRef} required />
+      </fieldset>
+      <button disabled={loading} type="submit">
+        Login
+      </button>
+      {errorMsg && (
+        <div className="error">
+          {errorMsg}
         </div>
-      </form>
-    </>
+      )}
+    </form>
   );
 };
 

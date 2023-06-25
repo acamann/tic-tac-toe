@@ -1,24 +1,35 @@
+import { useState } from 'react';
 import Register from './Register'
 import Login from './Login'
-import { useState } from 'react';
+import './Authenticate.css';
 
 const Authenticate = () => {
-  const [isRegistering, setIsRegistering] = useState(true);
+  const [mode, setMode] = useState<"register" | "login">("login");
 
-  return isRegistering ? (
-    <>
-      <Register />
-      <div>
-        Already a User? <a onClick={() => setIsRegistering(false)}>Login</a>
-      </div>
-    </>
-  ) : (
-    <>
-      <Login />
-      <div>
-        No Account? <a onClick={() => setIsRegistering(true)}>Register</a>
-      </div>
-    </>
+  return (
+    <div className="authenticate">
+      {mode === "register" ? (
+        <>
+          <Register />
+          <div className="mode">
+            Already a User?
+            <a onClick={() => setMode("login")}>
+              Login
+            </a>
+          </div>
+        </>
+      ) : (
+        <>
+          <Login />
+          <div className="mode">
+            Need an Account?
+            <a onClick={() => setMode("register")}>
+              Register
+            </a>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
