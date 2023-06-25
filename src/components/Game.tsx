@@ -9,6 +9,7 @@ const Game = () => {
   //const { user } = useAuth();
   const { game, handleMove } = useGameContext();
 
+  // TODO: draw
   const result: { type: "win", winner: string } | undefined = useMemo(() => {
     if (game?.winner === undefined) return undefined;
     if (game?.winner === 0) return { type: "win", winner: game.player0 };
