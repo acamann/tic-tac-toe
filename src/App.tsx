@@ -3,6 +3,7 @@ import { GameContextProvider, useGameContext } from './context/GameContext'
 import AuthProvider, { useAuth } from './context/AuthContext'
 import Authenticate from './components/Authenticate'
 import GameSetup from './components/GameSetup'
+import Game from './components/Game'
 
 const App = () => {
   const { user } = useAuth();
