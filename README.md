@@ -9,6 +9,8 @@ In-browser real-time tic-tac-toe game
  - 6/20: 9:30pm-10:30pm - prop up express api (revisit later)
  - 6/22: 8am-9am - subscribe to channel w game changes
  - 6/23: 6:30am-7:30am - win logic, show result
+ - 6/25: 10am-11:30am - supabase authentication
+ - 6/25: 2pm-? - display leaderboard
 
 # Requirements
  - [x] User can create a new game board
@@ -42,15 +44,15 @@ In-browser real-time tic-tac-toe game
     - wargames theme
 
 # Future work:
- - maybe store array of moves instead
- - clean up old access codes, unfinished games in db
- - stop polling
- - add winning percentage to leader board
- - persist player name in local storage
- - share game code button with direct link
- - different game modes 
+ - [ ] maybe store array of moves instead
+ - [ ] clean up old access codes, unfinished games in db
+ - [x] stop polling
+ - [ ] add winning percentage to leader board
+ - [x] persist player name in local storage
+ - [ ] share game code button with direct link
+ - [ ] different game modes 
    - numerical 1-9 odd vs even, first to sum 3 in a row to 15
    - tabletop
- - cheat code / super user override
- - player auth
+ - [ ] cheat code / super user override
+ - [x] player auth
 
