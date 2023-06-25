@@ -1,7 +1,8 @@
 import { createContext, useContext, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { GameBoard } from "../types/models";
 import { getNewBoard, getWinner, initialBoardState, isValidMove } from "./BoardUtils";
+import { useAuth } from "./AuthContext";
+import supabase from './../database/supabaseClient';
 
 const generatePairingCode = (): string => {
   let result = '';
@@ -38,8 +39,6 @@ type GameContextType = {
   createGame: () => Promise<void>;
   joinGame: (joinCode: string) => void;
   handleMove: (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => void;
-  username: string;
-  setUsername: (value: string) => void;
   error: string;
 }
 
@@ -49,20 +48,15 @@ const GameContext = createContext<GameContextType>({
   createGame: async () => { return; },
   joinGame: () => { return; },
   handleMove: () => { return; },
-  username: "",
-  setUsername: () => { return; },
   error: ""
 });
 
 const GameContextProvider = ({ children }: React.PropsWithChildren) => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
-  const supabase = createClient(supabaseUrl, supabaseKey);
+  const { user } = useAuth();
 
   const [pairingCode, setPairingCode] = useState<string>("");
   const [game, setGame] = useState<Game | undefined>(undefined);
 
-  const [username, setUsername] = useState("");
   const [error, setError] = useState("");
 
   const handleMove = async (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => {
@@ -108,23 +102,6 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
     }
   }
 
-  // const initializeUser = () => {
-  //   const user = supabase.auth.user();
-  //   let username;
-  //   if (user) {
-  //     username = user.user_metadata.user_name;
-  //   } else {
-  //     const storedUsername = localStorage.getItem("username");
-  //     if (storedUsername) {
-  //       username = storedUsername;
-  //     } else {
-  //       // prompt user to create username
-  //     }
-  //   }
-  //   setUsername(username);
-  //   localStorage.setItem("username", username);
-  // };
-
   const subscribeToGameChanges = (game_id: string) => {
     const channel = supabase
     .channel('game')
@@ -137,9 +114,7 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
       },
       async (payload) => {
         if (payload.old.game_id !== game_id) {
-          // TODO: implement auth & RLS
-          //   to prevent everyone getting spammed by everyone elses game
-          return;
+         return;
         }
         setError("");
 
@@ -198,7 +173,7 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
     }
 
     const code = generatePairingCode();
-    const player0 = username;
+    const player0 = user?.email;
     const { error } = await supabase
       .from('PairingCodes')
       .insert({ code, player0 });
@@ -266,7 +241,7 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
       .from('Games')
       .insert({
         player0: pairingData.player0,
-        player1: username,
+        player1: user?.email,
         board: initialBoardState,
         current_turn: 0
       })
@@ -285,7 +260,7 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
     const { error } = await supabase
       .from('PairingCodes')
       .update({
-        player1: username,
+        player1: user?.email,
         game_id: gameData.game_id
       })
       .eq('code', joinCode);
@@ -305,10 +280,6 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
   return (
     <GameContext.Provider
       value={{
-        //supabase,
-        //auth: supabase.auth,
-        username,
-        setUsername,
         pairingCode,
         game,
         createGame,
