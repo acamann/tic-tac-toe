@@ -15,6 +15,10 @@ const Game = () => {
     return undefined;
   }, [game?.is_draw, game?.winner])
 
+  if (result) {
+    return <GameResult result={result} />
+  }
+
   return game && 
     //user?.email &&
   (
@@ -25,7 +29,6 @@ const Game = () => {
         //user={user.email}
         current={game.current_turn === 0 ? "o" : game.current_turn === 1 ? "x" : undefined}
       />
-      <GameResult result={result} />
       <Board
         board={game.board}
         handleClickSquare={handleMove}

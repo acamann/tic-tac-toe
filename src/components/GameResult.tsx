@@ -17,11 +17,10 @@ const GameResult = ({
   return result && (
     <div>
       <h2>
-        Game Over.
         {result.type === "win" ? (
-          `${result.winner} Wins!`
+          `${result.winner} won!`
         ) : (
-          "It's a tie..."
+          "It's a tie."
         )}
       </h2>
       <Leaderboard />

@@ -1,0 +1,22 @@
+.leaderboard {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: lightgray;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.leaderboard h2 {
+  margin: 0;
+  font-size: 1.1em;
+}
+
+.leaderboard ol li div {
+  display: flex;
+}
+
+.leaderboard ol li div :first-child {
+  width: 200px;
+  text-align: left;
+}
