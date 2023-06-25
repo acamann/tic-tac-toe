@@ -18,6 +18,10 @@ export const getWinner = (board: GameBoard): 0 | 1 | null => {
   return null;
 }
 
+export const isDraw = (board: GameBoard): boolean => {
+  return board.every(row => row.every(square => square !== null));
+}
+
 export const isValidMove = (board: GameBoard, move: Move): boolean => {
   if (board[move.rowIndex][move.colIndex] !== null) {
     return false; // spot's taken
@@ -26,7 +30,7 @@ export const isValidMove = (board: GameBoard, move: Move): boolean => {
 }
 
 export const getNewBoard = (board: GameBoard, move: Move): GameBoard => {
-  if (!isValidMove) {
+  if (!isValidMove(board, move)) {
     throw new Error("Invalid move");
   }
   return board.map((row, i) => {

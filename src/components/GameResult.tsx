@@ -1,12 +1,14 @@
 import Leaderboard from "./Leaderboard";
 
+export type GameResultType = {
+  type: "draw"
+} | {
+  type: "win",
+  winner: string
+};
+
 type Props = {
-  result?: {
-    type: "draw"
-  } | {
-    type: "win",
-    winner: string
-  };
+  result?: GameResultType;
 }
 
 const GameResult = ({

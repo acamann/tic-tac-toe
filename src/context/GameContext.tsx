@@ -1,6 +1,6 @@
 import { createContext, useContext, useState } from "react";
 import { GameBoard } from "../types/models";
-import { getNewBoard, getWinner, initialBoardState, isValidMove } from "./BoardUtils";
+import { getNewBoard, getWinner, initialBoardState, isDraw, isValidMove } from "./BoardUtils";
 import { useAuth } from "./AuthContext";
 import supabase from './../database/supabaseClient';
 
@@ -28,9 +28,10 @@ type Game = {
   board: GameBoard;
   player0: string;
   player1: string;
-  current_turn?: 0 | 1;
+  current_turn: 0 | 1 | null;
+  winner: string | null;
+  is_draw: boolean | null;
   self: 0 | 1;
-  winner?: 0 | 1;
 }
 
 type GameContextType = {
@@ -42,14 +43,7 @@ type GameContextType = {
   error: string;
 }
 
-const GameContext = createContext<GameContextType>({
-  game: undefined,
-  pairingCode: "",
-  createGame: async () => { return; },
-  joinGame: () => { return; },
-  handleMove: () => { return; },
-  error: ""
-});
+const GameContext = createContext<GameContextType>({} as GameContextType);
 
 const GameContextProvider = ({ children }: React.PropsWithChildren) => {
   const { user } = useAuth();
@@ -66,14 +60,13 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
       if (!game) {
         throw new Error("Unknown game");
       }
-      if (game.winner !== undefined) {
-        throw new Error(`Game over: ${game.winner === 0 ? game.player0 : game.player1} wins!`)
+      if (game.is_draw || game.winner) {
+        throw new Error(`The game is already over.`)
       }
       if (game.current_turn !== game.self) {
-        game && console.log(game.current_turn, game.self)
         throw new Error("It's not your turn");
       }
-      if (!isValidMove) {
+      if (!isValidMove(game.board, { player: game.current_turn, rowIndex, colIndex })) {
         throw new Error("Invalid move");
       }
 
@@ -84,13 +77,15 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
       });
 
       const winner = getWinner(newBoard);
+      console.log(winner);
 
       const { error } = await supabase
         .from('Games')
         .update({
           board: newBoard,
-          current_turn: winner !== undefined ? game.current_turn === 0 ? true : false : null,
-          winner: winner === 1 ? true : winner === 0 ? false : null
+          current_turn: winner === null ? (game.current_turn === 0 ? true : false) : null,
+          winner: winner === 0 ? game.player0 : winner === 1 ? game.player1 : null,
+          is_draw: isDraw(newBoard)
         })
         .eq('game_id', game.game_id)
 
@@ -121,8 +116,7 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
         setGame(current => ({
           ...current,
           ...payload.new,
-          current_turn: payload.new.current_turn === true ? 1 : payload.new.current_turn === false ? 0 : undefined,
-          winner: payload.new.winner === true ? 1 : payload.new.winner === false ? 0 : undefined
+          current_turn: payload.new.current_turn === true ? 1 : payload.new.current_turn === false ? 0 : null,
         } as Game));
 
         if (payload.new.winner !== null) {
@@ -148,8 +142,7 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
 
     setGame({
       ...gameData,
-      current_turn: gameData.current_turn === true ? 1 : gameData.current_turn === false ? 0 : undefined,
-      winner: gameData.winner === true ? 1 : gameData.winner === false ? 0 : undefined,
+      current_turn: gameData.current_turn === true ? 1 : gameData.current_turn === false ? 0 : null,
       self: 0
     });
 
@@ -270,8 +263,7 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
     } else {
       setGame({
         ...gameData,
-        current_turn: gameData.current_turn === true ? 1 : gameData.current_turn === false ? 0 : undefined,
-        winner: gameData.winner === true ? 1 : gameData.winner === false ? 0 : undefined,
+        current_turn: gameData.current_turn === true ? 1 : gameData.current_turn === false ? 0 : null,
         self: 1
       });
     }

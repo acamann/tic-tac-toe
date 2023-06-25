@@ -3,13 +3,13 @@ import './Square.css'
 
 type Props = {
   value: SquareValue;
-  disabled?: boolean;
+  disabled: boolean;
   onClick: () => void;
 }
 
 const Square = ({
   value,
-  disabled = false,
+  disabled,
   onClick
 }: Props) => {
   return (

@@ -13,8 +13,7 @@ const Board = ({
   handleClickSquare
 }: Props) => {
   const { game } = useGameContext();
-
-  return (
+  return game && (
     <div className="board">
       {board.map((row, rowIndex) => (
         <div className="row" key={rowIndex}>
@@ -22,7 +21,7 @@ const Board = ({
             <Square
               key={`${rowIndex}-${colIndex}`}
               value={squareValue}
-              disabled={game?.winner !== undefined}
+              disabled={game.current_turn !== game.self || game.is_draw || game.winner !== null}
               onClick={(): void => handleClickSquare(rowIndex as 0 | 1 | 2, colIndex as 0 | 1 | 2)}
             />
           ))}
