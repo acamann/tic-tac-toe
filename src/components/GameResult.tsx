@@ -1,3 +1,5 @@
+import Leaderboard from "./Leaderboard";
+
 type Props = {
   result?: {
     type: "draw"
@@ -20,6 +22,7 @@ const GameResult = ({
           "It's a tie..."
         )}
       </h2>
+      <Leaderboard />
       <a onClick={() => window.location.reload()}>Play again?</a>
     </div>
   );
