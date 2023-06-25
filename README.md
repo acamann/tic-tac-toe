@@ -10,7 +10,7 @@ In-browser real-time tic-tac-toe game
  - 6/22: 8am-9am - subscribe to channel w game changes
  - 6/23: 6:30am-7:30am - win logic, show result
  - 6/25: 10am-11:30am - supabase authentication
- - 6/25: 2pm-? - display leaderboard
+ - 6/25: 2pm-4pm - display leaderboard, component clean up
 
 # Requirements
  - [x] User can create a new game board
@@ -18,7 +18,7 @@ In-browser real-time tic-tac-toe game
  - [x] Persist game state on the server in a database of your choice
  - [x] Follow standard rules for tic-tac-toe (or noughts and crosses)
  - [x] Display the game result and persist in the database at the end of the game
- - [ ] Display a ranking of the top five players and allow players to start a new game
+ - [x] Display a ranking of the top five players and allow players to start a new game
 
 # Game Plan
  1. [x] design DB models, rough UI
@@ -38,7 +38,7 @@ In-browser real-time tic-tac-toe game
     - game code removed from db
  5. [x] v0.3 - full game rules & persist state
  6. [x] v0.4 - game result
- 7. [ ] v0.5 - leader board
+ 7. [x] v0.5 - leader board
  8. [ ] v0.6 - both players can continue playing
  8. [ ] v0.7 - make it look pleasant
     - wargames theme
