@@ -11,8 +11,9 @@ In-browser real-time tic-tac-toe game
  - 6/23: 6:30am-7:30am - win logic, show result
  - 6/25: 10am-11:30am - supabase authentication
  - 6/25: 2pm-4pm - display leaderboard, component clean up
+ - 6/25: 9pm-10pm - final touches, scheduled DB clean up
 
-# Requirements
+# Goals
  - [x] User can create a new game board
  - [x] Allow two (and only two) players to connect to a game board
  - [x] Persist game state on the server in a database of your choice
@@ -39,19 +40,19 @@ In-browser real-time tic-tac-toe game
  5. [x] v0.3 - full game rules & persist state
  6. [x] v0.4 - game result
  7. [x] v0.5 - leader board
- 8. [ ] v0.6 - both players can continue playing
+ 8. [ ] v0.6 - both players can continue playing without re-pairing
  8. [ ] v0.7 - make it look pleasant
     - wargames theme
 
 # Future work:
- - [x] clean up old access codes, unfinished games in db
+ - [x] player auth
  - [x] stop polling
+ - [x] clean up old access codes, unfinished games in db
+ - [ ] allow playing new game without re-pairing
  - [ ] add winning percentage to leader board
- - [x] persist player name in local storage
- - [ ] share game code button with direct link
  - [ ] different game modes 
    - numerical 1-9 odd vs even, first to sum 3 in a row to 15
    - tabletop
  - [ ] cheat code / super user override
- - [x] player auth
+ - [ ] share game code button with direct link
 
