@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import supabaseClient from "../database/supabaseClient";
 import "./Leaderboard.css";
+import { useDB } from "../context/DBContext";
 
 type Rank = { winner: string, wins: number };
 
 const Leaderboard = () => {
   const [leaders, setLeaders] = useState<Rank[]>();
 
+  const { supabase } = useDB();
+
   useEffect(() => {
-    supabaseClient
+    supabase
       .from('leaderboard')
       .select("winner, wins")
       .then(({ data }) => {
@@ -16,7 +18,7 @@ const Leaderboard = () => {
           setLeaders(data);
         }
       });
-  }, []);
+  }, [supabase]);
 
   return (
     <div className="leaderboard">

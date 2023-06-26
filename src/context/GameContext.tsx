@@ -1,8 +1,8 @@
 import { createContext, useContext, useState } from "react";
 import { GameBoard } from "../types/models";
-import { getNewBoard, getWinner, initialBoardState, isDraw, isValidMove } from "./BoardUtils";
+import { getNewBoard, getWinner, initialBoardState, isDraw, isValidMove } from "../utils/BoardUtils";
 import { useAuth } from "./AuthContext";
-import supabase from './../database/supabaseClient';
+import { useDB } from "./DBContext";
 
 const generatePairingCode = (): string => {
   let result = '';
@@ -46,12 +46,12 @@ type GameContextType = {
 const GameContext = createContext<GameContextType>({} as GameContextType);
 
 const GameContextProvider = ({ children }: React.PropsWithChildren) => {
-  const { user } = useAuth();
-
   const [pairingCode, setPairingCode] = useState<string>("");
   const [game, setGame] = useState<Game | undefined>(undefined);
-
   const [error, setError] = useState("");
+
+  const { user } = useAuth();
+  const { supabase } = useDB();
 
   const handleMove = async (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => {
     setError("");
@@ -77,7 +77,6 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
       });
 
       const winner = getWinner(newBoard);
-      console.log(winner);
 
       const { error } = await supabase
         .from('Games')

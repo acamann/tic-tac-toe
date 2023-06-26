@@ -1,6 +1,6 @@
 import { AuthError, AuthResponse, AuthTokenResponse, User } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useState } from "react";
-import supabase from "./../database/supabaseClient";
+import { useDB } from "./DBContext";
 
 type AuthContextType = {
   user: User | null,
@@ -15,6 +15,8 @@ export const useAuth = () => useContext(AuthContext);
 
 const AuthProvider = ({ children }: React.PropsWithChildren) => {
   const [user, setUser] = useState<User | null>(null);
+
+  const { supabase } = useDB();
 
   const initializeUser = async () => {
     const { data } = await supabase.auth.getUser();
@@ -43,6 +45,9 @@ const AuthProvider = ({ children }: React.PropsWithChildren) => {
 
   useEffect(() => {
     initializeUser();
+  }, [])
+
+  useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
         setUser(session.user);
@@ -53,7 +58,7 @@ const AuthProvider = ({ children }: React.PropsWithChildren) => {
     return () => {
       data.subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase.auth]);
 
   return (
     <AuthContext.Provider 
