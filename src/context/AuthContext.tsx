@@ -1,4 +1,4 @@
-import { AuthResponse, AuthTokenResponse, User } from "@supabase/supabase-js";
+import { AuthError, AuthResponse, AuthTokenResponse, User } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useState } from "react";
 import supabase from "./../database/supabaseClient";
 
@@ -6,6 +6,7 @@ type AuthContextType = {
   user: User | null,
   login: (email: string, password: string) => Promise<AuthTokenResponse>,
   register: (email: string, password: string) => Promise<AuthResponse>;
+  logout: () => Promise<{ error: AuthError | null }>;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -37,13 +38,16 @@ const AuthProvider = ({ children }: React.PropsWithChildren) => {
       password
     });
 
-  // TODO: log out
+  const logout = async (): Promise<{ error: AuthError | null }> =>
+    await supabase.auth.signOut();
 
   useEffect(() => {
     initializeUser();
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
         setUser(session.user);
+      } else if (event === "SIGNED_OUT") {
+        setUser(null);
       }
     });
     return () => {
@@ -56,7 +60,8 @@ const AuthProvider = ({ children }: React.PropsWithChildren) => {
       value={{
         user,
         login,
-        register
+        register,
+        logout
       }}
     >
       {children}

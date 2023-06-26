@@ -4,3 +4,13 @@
   padding: 2rem;
   text-align: center;
 }
+
+#root h1 {
+  margin: 0;
+  margin-bottom: 16px;
+}
+
+input {
+  padding: 4px;
+  font-size: 1.1em;
+}

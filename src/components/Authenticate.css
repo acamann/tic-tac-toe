@@ -15,10 +15,14 @@
 
 .authenticate form h2 {
   margin: 0;
+  font-size: 1.1em;
 }
 
 .authenticate form fieldset {
   border: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .authenticate form button {

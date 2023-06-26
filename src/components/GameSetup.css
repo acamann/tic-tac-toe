@@ -1,0 +1,35 @@
+.setup .user {
+  margin: 24px 0;
+}
+
+.setup .code {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-radius: 16px;
+  padding: 16px;
+  background-color: lightgray;
+}
+
+.setup .code h2 {
+  margin: 0;
+  font-size: 2em;
+}
+
+.setup a {
+  cursor: pointer;
+}
+
+.setup .config {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  border-radius: 16px;
+  background-color: lightgray;
+}
+
+.setup .config input {
+  width: 100px;
+  font-size: 2em;
+}

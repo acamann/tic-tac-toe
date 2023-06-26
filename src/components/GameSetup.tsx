@@ -1,48 +1,63 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useGameContext } from '../context/GameContext';
+import "./GameSetup.css";
 
 const GameSetup = () => {
+  const [isJoining, setIsJoining] = useState(false);
   const [joinCode, setJoinCode] = useState("");
 
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const {
     createGame,
     pairingCode,
     joinGame,
-    error,
   } = useGameContext();
 
   return (
-    <>
-      <h2 style={{ color: "red" }}>{error}</h2>
-      <div style={{ padding: 16 }}>
-        Welcome <b>{user?.email}</b>
+    <div className="setup">
+      <div className="user">
+        <div>
+          Welcome <b>{user?.email}</b>
+        </div>
+        <a onClick={logout}>
+          Log out
+        </a>
       </div>
       {pairingCode.length > 0 ? (
-        <>
-          <div>Share Pairing Code with player 2:</div>
+        <div className="code">
+          <div>Share Pairing Code:</div>
           <h2>{pairingCode}</h2>
-        </>
+          <div>Waiting for Player 2 to join...</div>
+          <a onClick={() => window.location.reload()}>Cancel</a>
+        </div>
+      ) : isJoining ? (
+        <div className="config">
+          <input
+            id="join"
+            onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+            value={joinCode}
+          />
+          <button onClick={() => joinGame(joinCode)}>
+            Pair
+          </button>
+          <a onClick={() => setIsJoining(false)}>
+            Cancel
+          </a>
+        </div>
       ) : (
-        <>
+        <div className="config">
           <button onClick={async () => await createGame()}>
             New Game
           </button>
-          <div>
-            Pairing Code:
-            <input
-              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-              value={joinCode}
-            />
-            <button onClick={() => joinGame(joinCode)}>
-              Join Game
-            </button>
-          </div>
-        </>
+          or
+          <button onClick={() => setIsJoining(true)}>
+            Join Game
+          </button>
+        </div>
       )}
-    </>
+    </div>
   );
 }
 
