@@ -13,17 +13,17 @@ const Game = () => {
     return undefined;
   }, [game?.is_draw, game?.winner])
 
-  if (result) {
-    return <GameResult result={result} />
-  }
-
   return game && (
     <>
-      <PlayerList
-        o={game.player0}
-        x={game.player1}
-        current={game.current_turn === 0 ? "o" : game.current_turn === 1 ? "x" : undefined}
-      />
+      {result ? (
+        <GameResult result={result} />
+      ) : (
+        <PlayerList
+          o={game.player0}
+          x={game.player1}
+          current={game.current_turn === 0 ? "o" : game.current_turn === 1 ? "x" : undefined}
+        />
+      )}
       <Board
         board={game.board}
         handleClickSquare={handleMove}
