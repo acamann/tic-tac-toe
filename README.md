@@ -44,8 +44,7 @@ In-browser real-time tic-tac-toe game
     - wargames theme
 
 # Future work:
- - [ ] maybe store array of moves instead
- - [ ] clean up old access codes, unfinished games in db
+ - [x] clean up old access codes, unfinished games in db
  - [x] stop polling
  - [ ] add winning percentage to leader board
  - [x] persist player name in local storage
