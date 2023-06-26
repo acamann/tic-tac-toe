@@ -17,10 +17,10 @@ type Game = {
   board: GameBoard;
   player0: string;
   player1: string;
-  current_turn: 0 | 1 | null;
+  current_turn: 0 | 1 | null; // true/false/null in DB
   winner: string | null;
   is_draw: boolean | null;
-  self: 0 | 1;
+  self: 0 | 1; // client-side only
 }
 
 type GameContextType = {
@@ -87,32 +87,30 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
 
   const subscribeToGameChanges = (game_id: string) => {
     const channel = supabase
-    .channel('game')
-    .on(
-      'postgres_changes',
-      {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'Games',
-      },
-      async (payload) => {
-        if (payload.old.game_id !== game_id) {
-         return;
-        }
-        setError("");
+      .channel(`${user?.email}${game_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'Games',
+          filter: `game_id=eq.${game_id}`
+        },
+        async (payload) => {
+          setError("");
 
-        setGame(current => ({
-          ...current,
-          ...payload.new,
-          current_turn: payload.new.current_turn === true ? 1 : payload.new.current_turn === false ? 0 : null,
-        } as Game));
+          setGame(current => ({
+            ...current,
+            ...payload.new,
+            current_turn: payload.new.current_turn === true ? 1 : payload.new.current_turn === false ? 0 : null,
+          } as Game));
 
-        if (payload.new.winner !== null || payload.new.is_draw === true) {
-          channel.unsubscribe();
+          if (payload.new.winner !== null || payload.new.is_draw) {
+            channel.unsubscribe();
+          }
         }
-      }
-    )
-    .subscribe()
+      )
+      .subscribe();
   }
 
   const handlePairingComplete = async (data: PairingCodesData): Promise<boolean> => {
@@ -140,9 +138,9 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
 
   const deletePairingCode = async (code: string) => {
     await supabase
-    .from('PairingCodes')
-    .delete()
-    .eq("code", code);
+      .from('PairingCodes')
+      .delete()
+      .eq("code", code);
   }
 
   const createGame = async () => {
@@ -165,18 +163,16 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
       setPairingCode(code);
 
       const pairingChannel = supabase
-        .channel('pairing')
+        .channel(`${user?.email}-${code}`)
         .on(
           'postgres_changes',
           {
             event: 'UPDATE',
             schema: 'public',
             table: 'PairingCodes',
+            filter: `code=eq.${code}`
           },
           async (payload) => {
-            if (payload.new.code !== code) {
-              return;
-            }
             if (await handlePairingComplete(payload.new as PairingCodesData)) {
               setPairingCode("");
 
