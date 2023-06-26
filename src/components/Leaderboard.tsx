@@ -11,7 +11,7 @@ const Leaderboard = () => {
     supabaseClient
       .from('leaderboard')
       .select("winner, wins")
-      .then(({ data, error }) => {
+      .then(({ data }) => {
         if (data) {
           setLeaders(data);
         }
