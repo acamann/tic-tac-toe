@@ -3,18 +3,7 @@ import { GameBoard } from "../types/models";
 import { getNewBoard, getWinner, initialBoardState, isDraw, isValidMove } from "../utils/BoardUtils";
 import { useAuth } from "./AuthContext";
 import { useDB } from "./DBContext";
-
-const generatePairingCode = (): string => {
-  let result = '';
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const charactersLength = characters.length;
-  let counter = 0;
-  while (counter < 4) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    counter += 1;
-  }
-  return result;
-}
+import { generatePairingCode } from "../utils/PairingUtils";
 
 type PairingCodesData = {
   code: string;
