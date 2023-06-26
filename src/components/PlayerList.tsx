@@ -1,23 +1,23 @@
+import "./PlayerList.css";
+
 type Props = {
   o: string;
   x: string;
-  //user: string;
   current?: "o" | "x";
 }
 
 const PlayerList = ({
   o,
   x,
-  //user,
   current
 }: Props) => {
   return (
-    <div>
+    <div className="players">
       <div className={current === "o" ? "current" : undefined}>
-        O: {o}
+        O = {o}
       </div>
       <div className={current === "x" ? "current" : undefined}>
-        X: {x}
+        X = {x}
       </div>
     </div>
   );

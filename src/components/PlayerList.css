@@ -1,0 +1,17 @@
+.players {
+  display: flex;
+  flex-direction: column;
+  margin: 24px;
+  gap: 8px;
+  align-items: center;
+}
+
+.players div {
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.players .current {
+  font-weight: bold;
+  background-color: lightsteelblue;
+}
