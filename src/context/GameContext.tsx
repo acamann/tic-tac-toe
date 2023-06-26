@@ -27,7 +27,7 @@ type GameContextType = {
   game: Game | undefined;
   pairingCode: string;
   createGame: () => Promise<void>;
-  joinGame: (joinCode: string) => void;
+  joinGame: (joinCode: string) => Promise<void>;
   handleMove: (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => void;
   error: string;
 }
@@ -107,7 +107,7 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
           current_turn: payload.new.current_turn === true ? 1 : payload.new.current_turn === false ? 0 : null,
         } as Game));
 
-        if (payload.new.winner !== null) {
+        if (payload.new.winner !== null || payload.new.is_draw === true) {
           channel.unsubscribe();
         }
       }

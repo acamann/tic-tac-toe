@@ -1,12 +1,10 @@
 import { useMemo } from 'react';
-//import { useAuth } from '../context/AuthContext';
 import { useGameContext } from '../context/GameContext';
 import Board from './Board';
 import PlayerList from './PlayerList';
 import GameResult, { GameResultType } from './GameResult';
 
 const Game = () => {
-  //const { user } = useAuth();
   const { game, handleMove } = useGameContext();
 
   const result: GameResultType | undefined = useMemo(() => {
@@ -19,14 +17,11 @@ const Game = () => {
     return <GameResult result={result} />
   }
 
-  return game && 
-    //user?.email &&
-  (
+  return game && (
     <>
       <PlayerList
         o={game.player0}
         x={game.player1}
-        //user={user.email}
         current={game.current_turn === 0 ? "o" : game.current_turn === 1 ? "x" : undefined}
       />
       <Board

@@ -39,7 +39,7 @@ const GameSetup = () => {
             onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
             value={joinCode}
           />
-          <button onClick={() => joinGame(joinCode)}>
+          <button onClick={async () => await joinGame(joinCode)}>
             Pair
           </button>
           <a onClick={() => setIsJoining(false)}>

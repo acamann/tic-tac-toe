@@ -1,4 +1,5 @@
 import Leaderboard from "./Leaderboard";
+import "./GameResult.css";
 
 export type GameResultType = {
   type: "draw"
@@ -15,7 +16,7 @@ const GameResult = ({
   result
 }: Props) => {
   return result && (
-    <div>
+    <div className="result">
       <h2>
         {result.type === "win" ? (
           `${result.winner} won!`
@@ -24,7 +25,7 @@ const GameResult = ({
         )}
       </h2>
       <Leaderboard />
-      <a onClick={() => window.location.reload()}>Play again?</a>
+      <button onClick={() => window.location.reload()}>Play again</button>
     </div>
   );
 }
