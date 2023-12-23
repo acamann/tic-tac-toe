@@ -1,0 +1,15 @@
+[build]
+  command="CI= npm run build"
+  publish="build"
+  functions="functions"
+
+[[redirects]]
+  from="/api/*"
+  to="/.netlify/functions/:splat"
+  status=200
+  force=true
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
