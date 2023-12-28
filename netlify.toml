@@ -3,6 +3,10 @@
   publish="build"
   functions="functions"
 
+[[edge_functions]]
+  function = "pair"
+  path = "/pair"
+
 [[redirects]]
   from="/api/*"
   to="/.netlify/functions/:splat"
