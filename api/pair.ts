@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Redis from "ioredis";
 import { generatePairingCode } from "../src/utils/PairingUtils.ts";
+import { randomUUID } from 'crypto';
 
 if (!process.env.VITE_UPSTASH_CONNECTION_URL) {
   throw new Error("Missing required environment variable VITE_UPSTASH_CONNECTION_URL");
@@ -30,8 +31,9 @@ export default async function handler(
 }
 
 const getNewPairingCode = async (request: VercelRequest, response: VercelResponse): Promise<VercelResponse> => {
+
   // TODO: get from auth
-  const player1 = "requestor";
+  const player1 = "1st requestor";
 
   const code = generatePairingCode();
 
@@ -56,7 +58,18 @@ const pairToExistingCode = async (code: string, request: VercelRequest, response
     return response.status(409).json({ message: "Unknown Pairing Code" });
   }
 
-  // do things to complete pairing
+  const { player1 } = JSON.parse(pairing);
 
-  return response.status(200).json({ message: "all good!" });
+  // TODO: get from auth
+  const player2 = "2nd requestor";
+
+  const gameId = randomUUID();
+
+  // store game
+  await redis.set(gameId, JSON.stringify({ gameId, player1, player2 }), 'EX', 600);
+
+  // pub game id to any subscribed clients (other half of pair)
+  await redis.publish(code, gameId);
+
+  return response.status(200).json({ gameId });
 }
