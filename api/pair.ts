@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Redis from "ioredis";
-import { generatePairingCode } from "./_pairing-utils.ts";
+import { generatePairingCode } from "./_pairing-utils.js";
 import { randomUUID } from 'crypto';
 
 if (!process.env.VITE_UPSTASH_CONNECTION_URL) {
