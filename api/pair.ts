@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Redis from "ioredis";
-import { generatePairingCode } from "../src/utils/PairingUtils.ts";
+import { generatePairingCode } from "./_pairing-utils.ts";
 import { randomUUID } from 'crypto';
 
 if (!process.env.VITE_UPSTASH_CONNECTION_URL) {
@@ -17,7 +17,9 @@ export default async function handler(
     if (request.method === "GET") {
       const { code } = request.query;
       if (code) {
-        if (Array.isArray(code)) return response.status(400).json({ message: "Only a single pairing code is allowed" })
+        if (Array.isArray(code)) {
+          return response.status(400).json({ message: "Only a single pairing code is allowed" });
+        }
         return await pairToExistingCode(code, request, response);
       }
 
@@ -43,6 +45,8 @@ const getNewPairingCode = async (request: VercelRequest, response: VercelRespons
   }
 
   await redis.set(code, JSON.stringify(pairing), 'EX', 60);
+
+  // recipient will use code to subscribe to events (to know when paired & get game id)
 
   return response.status(201).json({ code });
 }
@@ -70,6 +74,9 @@ const pairToExistingCode = async (code: string, request: VercelRequest, response
 
   // pub game id to any subscribed clients (other half of pair)
   await redis.publish(code, gameId);
+
+  // remove pairing code now that we're paired (or could just let it expire)
+  await redis.del(code);
 
   return response.status(200).json({ gameId });
 }

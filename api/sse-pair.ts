@@ -1,3 +1,5 @@
+// TODO: this is unused now, but proven out
+
 import { generatePairingCode } from "../src/utils/PairingUtils";
 //import { Redis } from "ioredis";
 import { Redis } from "@upstash/redis";
