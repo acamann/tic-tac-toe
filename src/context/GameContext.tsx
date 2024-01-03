@@ -3,14 +3,12 @@ import { GameBoard } from "../types/models";
 import { getNewBoard, getWinner, initialBoardState, isDraw, isValidMove } from "../utils/BoardUtils";
 import { useAuth } from "./AuthContext";
 import { useDB } from "./DBContext";
-import { generatePairingCode } from "../utils/PairingUtils";
 
-type PairingCodesData = {
-  code: string;
-  player1_id: string;
-  player2_id: string;
-  game_id: string;
+import * as Ably from 'ably';
+if (!import.meta.env.VITE_ABLY_API_KEY) {
+  throw new Error("Missing VITE_ABLY_API_KEY");
 }
+const client = new Ably.Realtime(import.meta.env.VITE_ABLY_API_KEY);
 
 type Game = {
   game_id: string;
@@ -113,144 +111,85 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
       .subscribe();
   }
 
-  const handlePairingComplete = async (data: PairingCodesData): Promise<boolean> => {
-    const { data: gameDataResult, error: getGameDataError } = await supabase
-      .from('Games')
-      .select()
-      .eq("game_id", data.game_id);
-
-    if (getGameDataError) {
-      setError(getGameDataError.message);
-      return false;
-    }
-
-    const gameData = gameDataResult[0];
-
-    setGame({
-      ...gameData,
-      current_turn: gameData.current_turn === true ? 1 : gameData.current_turn === false ? 0 : null,
-      self: 0
-    });
-
-    subscribeToGameChanges(data.game_id);
-    return true;
-  }
-
-  const deletePairingCode = async (code: string) => {
-    await supabase
-      .from('PairingCodes')
-      .delete()
-      .eq("code", code);
-  }
-
   const createGame = async () => {
     setError("");
 
-    if (pairingCode) {
-      // delete old pairing code we are about to replace
-      await deletePairingCode(pairingCode);
+    const resp = await fetch(`/api/pair`);
+
+    if (!resp.ok) {
+      console.error(resp);
+      setError("Could not join game");
+      return;
     }
 
-    const code = generatePairingCode();
-    const player0 = user?.email;
-    const { error } = await supabase
-      .from('PairingCodes')
-      .insert({ code, player0 });
+    const { code, expiration } = await resp.json();
+    setPairingCode(code);
 
-    if (error) {
-      setError(error.message);
-    } else {
-      setPairingCode(code);
-
-      const pairingChannel = supabase
-        .channel(`${user?.email}-${code}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'PairingCodes',
-            filter: `code=eq.${code}`
-          },
-          async (payload) => {
-            if (await handlePairingComplete(payload.new as PairingCodesData)) {
-              setPairingCode("");
-
-              // remove pairing code since pairing is complete
-              await deletePairingCode(code);
-
-              pairingChannel.unsubscribe();
-            }
-          }
-        )
-        .subscribe()
+    const clearTimeouts = () => {
+      if (expirationTimer) clearTimeout(expirationTimer);
     }
+    const unsubscribe = () => {
+      if (channel) {
+        channel.unsubscribe();
+        channel.detach(); // need to detach to release channel, unsubscribe doesn't cut it
+      }
+    }
+
+    const channel = client.channels.get(code);
+    channel.subscribe((message) => {
+      console.log("message!");
+      console.log(message);
+      // specifically for now we care about message where name = gameId, but let's send em all
+
+      if (message.name === "gameId") {
+        const gameId = message.data;
+        console.log(gameId);
+        setGame({
+          game_id: gameId,
+          board: initialBoardState,
+          player0: "dummy",
+          player1: "dummy2",
+          is_draw: null,
+          winner: null,
+          current_turn: 0,
+          self: 0
+        });
+        setPairingCode("");
+      }
+      clearTimeouts();
+      unsubscribe();
+    });
+
+    const expirationTimer = setTimeout(() => {
+      setError("Pairing code expired");
+      setPairingCode("");
+      unsubscribe();
+    }, expiration * 1000)
   };
 
   const joinGame = async (joinCode: string) => {
+    const resp = await fetch(`/api/join?code=${joinCode}`);
+
+    if (resp.status !== 200) {
+      // TODO: better error stuff
+      setError("Could not join");
+      console.error("Could not join", resp);
+    }
+
+    const { gameId } = await resp.json() as { gameId: string };
     setError("");
+    subscribeToGameChanges(gameId);
 
-    // does the pairing code exist & is it not yet paired
-    const { data: pairingDataResult, error: availabilityCheckError } = await supabase
-      .from('PairingCodes')
-      .select("player0, player1")
-      .eq('code', joinCode);
-
-    if (availabilityCheckError) {
-      setError(availabilityCheckError.message);
-      return;
-    }
-
-    if (pairingDataResult.length === 0) {
-      setError("No matching Pairing Code found.");
-      return;
-    }
-
-    const pairingData = pairingDataResult[0];
-
-    if (pairingData.player1 !== null) {
-      setError("Two players have already paired with this code.");
-      return;
-    }
-
-    // create a new game
-    const { data: gameDataResult, error: createGameError } = await supabase
-      .from('Games')
-      .insert({
-        player0: pairingData.player0,
-        player1: user?.email,
-        board: initialBoardState,
-        current_turn: 0
-      })
-      .select();
-
-    if (createGameError) {
-      setError(createGameError.message);
-      return;
-    }
-
-    const gameData = gameDataResult[0];
-
-    subscribeToGameChanges(gameData.game_id);
-
-    // complete the pairing data so the host gets the game id via subscription
-    const { error } = await supabase
-      .from('PairingCodes')
-      .update({
-        player1: user?.email,
-        game_id: gameData.game_id
-      })
-      .eq('code', joinCode);
-
-    if (error) {
-      setError(error.message);
-    } else {
-      setGame({
-        ...gameData,
-        current_turn: gameData.current_turn === true ? 1 : gameData.current_turn === false ? 0 : null,
-        self: 1
-      });
-    }
+    setGame({
+      game_id: gameId,
+      board: initialBoardState,
+      player0: "dummy",
+      player1: "dummy2",
+      is_draw: null,
+      winner: null,
+      current_turn: 0,
+      self: 1
+    });
   };
 
   return (
