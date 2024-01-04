@@ -17,15 +17,15 @@ export default async function handler(
       // TODO: get from auth
       const player1 = "requestor";
 
-      const codeExpirationSeconds = 30;
-          const code = generatePairingCode();
+      const codeExpirationSeconds = 90;
+      const code = generatePairingCode();
 
-               const pairing = {
-            code,
-            player1,
-          }
+      const pairing = {
+        code,
+        player1,
+      }
 
-          await redis.set(code, JSON.stringify(pairing), 'EX', codeExpirationSeconds );
+      await redis.set(code, JSON.stringify(pairing), 'EX', codeExpirationSeconds );
 
       return response.status(200).json({ code, expiration: codeExpirationSeconds });
     } else {

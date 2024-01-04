@@ -3,12 +3,7 @@ import { GameBoard } from "../types/models";
 import { getNewBoard, getWinner, initialBoardState, isDraw, isValidMove } from "../utils/BoardUtils";
 import { useAuth } from "./AuthContext";
 import { useDB } from "./DBContext";
-
-import * as Ably from 'ably';
-if (!import.meta.env.VITE_ABLY_API_KEY) {
-  throw new Error("Missing VITE_ABLY_API_KEY");
-}
-const client = new Ably.Realtime(import.meta.env.VITE_ABLY_API_KEY);
+import { useAblyRealtime } from "./AblyRealtimeContext";
 
 type Game = {
   game_id: string;
@@ -39,6 +34,7 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
 
   const { user } = useAuth();
   const { supabase } = useDB();
+  const { client: realtimeClient } = useAblyRealtime();
 
   const handleMove = async (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => {
     setError("");
@@ -111,23 +107,17 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
       .subscribe();
   }
 
-  const createGame = async () => {
-    setError("");
-
-    const resp = await fetch(`/api/pair`);
-
-    if (!resp.ok) {
-      console.error(resp);
-      setError("Could not join game");
-      return;
-    }
-
-    const { code, expiration } = await resp.json();
-    setPairingCode(code);
-
+  const subscribeToLobby = (code: string, expiration: number) => {
     const clearTimeouts = () => {
       if (expirationTimer) clearTimeout(expirationTimer);
     }
+    
+    const expirationTimer = setTimeout(() => {
+      setError("Pairing code expired");
+      setPairingCode("");
+      unsubscribe();
+    }, expiration * 1000);
+
     const unsubscribe = () => {
       if (channel) {
         channel.unsubscribe();
@@ -135,36 +125,44 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
       }
     }
 
-    const channel = client.channels.get(code);
+    const channel = realtimeClient.channels.get(code);
     channel.subscribe((message) => {
-      console.log("message!");
-      console.log(message);
-      // specifically for now we care about message where name = gameId, but let's send em all
-
       if (message.name === "gameId") {
         const gameId = message.data;
-        console.log(gameId);
+
+        // TODO: get data from API instead
         setGame({
           game_id: gameId,
           board: initialBoardState,
-          player0: "dummy",
-          player1: "dummy2",
+          player0: "dummy", // TODO: fix to get game data from API
+          player1: "dummy2", // TODO: fix to get game data from API
           is_draw: null,
           winner: null,
           current_turn: 0,
           self: 0
         });
         setPairingCode("");
+        // TOOD: subscribe to game changes
       }
       clearTimeouts();
       unsubscribe();
     });
+  }
 
-    const expirationTimer = setTimeout(() => {
-      setError("Pairing code expired");
-      setPairingCode("");
-      unsubscribe();
-    }, expiration * 1000)
+  const createGame = async () => {
+    setError("");
+
+    const resp = await fetch(`/api/pair`);
+
+    if (!resp.ok) {
+      setError("Could not create game");
+      return;
+    }
+
+    const { code, expiration } = await resp.json();
+    setPairingCode(code);
+
+    subscribeToLobby(code, expiration);
   };
 
   const joinGame = async (joinCode: string) => {
@@ -176,10 +174,12 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
       console.error("Could not join", resp);
     }
 
-    const { gameId } = await resp.json() as { gameId: string };
-    setError("");
-    subscribeToGameChanges(gameId);
+    const { gameId } = await resp.json() as { gameId: string, player0: string };
 
+    // TODO: fix this, as it's subscribing to the wrong game id in the wrong data source
+    subscribeToGameChanges(gameId);
+    
+    // TODO: fix this
     setGame({
       game_id: gameId,
       board: initialBoardState,

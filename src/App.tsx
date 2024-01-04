@@ -5,6 +5,7 @@ import Authenticate from './components/Authenticate'
 import GameSetup from './components/GameSetup'
 import Game from './components/Game'
 import DBProvider from './context/DBContext'
+import AblyRealtimeProvider from './context/AblyRealtimeContext'
 
 const App = () => {
   const { user } = useAuth();
@@ -29,11 +30,13 @@ const AppWrapper = () => {
 
   return (
     <DBProvider>
-      <AuthProvider>
-        <GameContextProvider>
-          <App />
-        </GameContextProvider>
-      </AuthProvider>
+      <AblyRealtimeProvider>
+        <AuthProvider>
+          <GameContextProvider>
+            <App />
+          </GameContextProvider>
+        </AuthProvider>
+      </AblyRealtimeProvider>
     </DBProvider>
   )
 }

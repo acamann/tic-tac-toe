@@ -49,6 +49,7 @@ const joinExistingCode = async (code: string, request: VercelRequest, response: 
   const gameId = randomUUID();
 
   // store game
+  // TODO: store full game data here and set up game endpoint to retrieve & move
   await redis.set(gameId, JSON.stringify({ gameId, player1, player2 }), 'EX', 600);
 
   // pub game id to any subscribed clients (other half of pair)
