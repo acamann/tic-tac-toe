@@ -1,18 +1,22 @@
 import { createContext, useContext, useState } from "react";
 import { GameBoard } from "../types/models";
-import { getNewBoard, getWinner, initialBoardState, isDraw, isValidMove } from "../utils/BoardUtils";
+import { getNewBoard, getWinner, isDraw, isValidMove } from "../utils/BoardUtils";
 import { useAuth } from "./AuthContext";
 import { useDB } from "./DBContext";
 import { useAblyRealtime } from "./AblyRealtimeContext";
 
-type Game = {
+type GameEntity = {
   game_id: string;
   board: GameBoard;
   player0: string;
   player1: string;
-  current_turn: 0 | 1 | null; // true/false/null in DB
+  current_turn: boolean | null;
   winner: string | null;
   is_draw: boolean | null;
+}
+
+type Game = Omit<GameEntity, 'current_turn'> & {
+  current_turn: 0 | 1 | null;
   self: 0 | 1; // client-side only
 }
 
@@ -23,6 +27,7 @@ type GameContextType = {
   joinGame: (joinCode: string) => Promise<void>;
   handleMove: (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => void;
   error: string;
+  isLoading: boolean;
 }
 
 const GameContext = createContext<GameContextType>({} as GameContextType);
@@ -31,6 +36,7 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
   const [pairingCode, setPairingCode] = useState<string>("");
   const [game, setGame] = useState<Game | undefined>(undefined);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const { user } = useAuth();
   const { supabase } = useDB();
@@ -127,22 +133,17 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
 
     const channel = realtimeClient.channels.get(code);
     channel.subscribe((message) => {
-      if (message.name === "gameId") {
-        const gameId = message.data;
+      if (message.name === "game") {
+        const game = JSON.parse(message.data) as GameEntity;
 
-        // TODO: get data from API instead
         setGame({
-          game_id: gameId,
-          board: initialBoardState,
-          player0: "dummy", // TODO: fix to get game data from API
-          player1: "dummy2", // TODO: fix to get game data from API
-          is_draw: null,
-          winner: null,
-          current_turn: 0,
+          ...game,
+          current_turn: game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
           self: 0
         });
         setPairingCode("");
-        // TOOD: subscribe to game changes
+
+        subscribeToGameChanges(game.game_id);
       }
       clearTimeouts();
       unsubscribe();
@@ -152,7 +153,9 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
   const createGame = async () => {
     setError("");
 
+    setIsLoading(true);
     const resp = await fetch(`/api/pair`);
+    setIsLoading(false);
 
     if (!resp.ok) {
       setError("Could not create game");
@@ -166,7 +169,9 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
   };
 
   const joinGame = async (joinCode: string) => {
+    setIsLoading(true);
     const resp = await fetch(`/api/join?code=${joinCode}`);
+    setIsLoading(false);
 
     if (resp.status !== 200) {
       // TODO: better error stuff
@@ -174,22 +179,15 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
       console.error("Could not join", resp);
     }
 
-    const { gameId } = await resp.json() as { gameId: string, player0: string };
+    const { game } = await resp.json() as { game: GameEntity };
 
-    // TODO: fix this, as it's subscribing to the wrong game id in the wrong data source
-    subscribeToGameChanges(gameId);
-    
-    // TODO: fix this
     setGame({
-      game_id: gameId,
-      board: initialBoardState,
-      player0: "dummy",
-      player1: "dummy2",
-      is_draw: null,
-      winner: null,
-      current_turn: 0,
+      ...game,
+      current_turn: game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
       self: 1
     });
+
+    subscribeToGameChanges(game.game_id);
   };
 
   return (
@@ -201,6 +199,7 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
         joinGame,
         handleMove,
         error,
+        isLoading
       }}
     >
       {children}
