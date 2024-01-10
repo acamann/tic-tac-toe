@@ -35,11 +35,15 @@ export default async function handler(
 ) {
   try {
     if (request.method === "GET") {
-      const { code } = request.query;
+      const { code, player } = request.query;
       if (!code || Array.isArray(code)) {
         return response.status(400).json({ message: "A single code paramter is required" });
       }
-      return await joinExistingCode(code, request, response);
+      if (!player || Array.isArray(player)) {
+        // TODO: get this from auth access token instead
+        return response.status(400).json({ message: "A player name is required" });
+      }
+      return await joinExistingCode(code, player, request, response);
     } else {
       return response.status(405);
     }
@@ -48,7 +52,7 @@ export default async function handler(
   }
 }
 
-const joinExistingCode = async (code: string, request: VercelRequest, response: VercelResponse): Promise<VercelResponse> => {
+const joinExistingCode = async (code: string, player2: string, request: VercelRequest, response: VercelResponse): Promise<VercelResponse> => {
   const pairing = await redis.get(code);
   
   if (!pairing) {
@@ -56,9 +60,6 @@ const joinExistingCode = async (code: string, request: VercelRequest, response: 
   }
 
   const { player1 } = JSON.parse(pairing);
-
-  // TODO: get from auth
-  const player2 = "2nd requestor";
 
   // generate from DB for now
   // TODO: consider putting gamestate in redis

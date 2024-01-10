@@ -154,7 +154,8 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
     setError("");
 
     setIsLoading(true);
-    const resp = await fetch(`/api/pair`);
+    // TODO: remove player name from param and replace with auth0 access token
+    const resp = await fetch(`/api/pair?player=${user?.email}`);
     setIsLoading(false);
 
     if (!resp.ok) {
@@ -170,7 +171,8 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
 
   const joinGame = async (joinCode: string) => {
     setIsLoading(true);
-    const resp = await fetch(`/api/join?code=${joinCode}`);
+    // TODO: remove player name from param and replace with auth0 access token
+    const resp = await fetch(`/api/join?code=${joinCode}&player=${user?.email}`);
     setIsLoading(false);
 
     if (resp.status !== 200) {

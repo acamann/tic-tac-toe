@@ -14,15 +14,19 @@ export default async function handler(
 ) {
   try {
     if (request.method === "GET") {
-      // TODO: get from auth
-      const player1 = "requestor";
+
+      const { player } = request.query;
+      if (!player || Array.isArray(player)) {
+        // TODO: get this from auth access token instead
+        return response.status(400).json({ message: "A player name is required" });
+      }
 
       const codeExpirationSeconds = 90;
       const code = generatePairingCode();
 
       const pairing = {
         code,
-        player1,
+        player1: player,
       }
 
       await redis.set(code, JSON.stringify(pairing), 'EX', codeExpirationSeconds );
