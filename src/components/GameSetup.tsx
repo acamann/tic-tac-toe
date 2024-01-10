@@ -13,6 +13,7 @@ const GameSetup = () => {
     createGame,
     pairingCode,
     joinGame,
+    isLoading
   } = useGameContext();
 
   return (
@@ -39,7 +40,10 @@ const GameSetup = () => {
             onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
             value={joinCode}
           />
-          <button onClick={async () => await joinGame(joinCode)}>
+          <button
+            onClick={async () => await joinGame(joinCode)}
+            disabled={isLoading}
+          >
             Pair
           </button>
           <a onClick={() => setIsJoining(false)}>
@@ -48,7 +52,10 @@ const GameSetup = () => {
         </div>
       ) : (
         <div className="config">
-          <button onClick={async () => await createGame()}>
+          <button
+            onClick={async () => await createGame()}
+            disabled={isLoading}
+          >
             New Game
           </button>
           or

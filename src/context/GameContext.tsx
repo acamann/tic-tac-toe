@@ -1,25 +1,22 @@
 import { createContext, useContext, useState } from "react";
 import { GameBoard } from "../types/models";
-import { getNewBoard, getWinner, initialBoardState, isDraw, isValidMove } from "../utils/BoardUtils";
+import { getNewBoard, getWinner, isDraw, isValidMove } from "../utils/BoardUtils";
 import { useAuth } from "./AuthContext";
 import { useDB } from "./DBContext";
-import { generatePairingCode } from "../utils/PairingUtils";
+import { useAblyRealtime } from "./AblyRealtimeContext";
 
-type PairingCodesData = {
-  code: string;
-  player1_id: string;
-  player2_id: string;
-  game_id: string;
-}
-
-type Game = {
+type GameEntity = {
   game_id: string;
   board: GameBoard;
   player0: string;
   player1: string;
-  current_turn: 0 | 1 | null; // true/false/null in DB
+  current_turn: boolean | null;
   winner: string | null;
   is_draw: boolean | null;
+}
+
+type Game = Omit<GameEntity, 'current_turn'> & {
+  current_turn: 0 | 1 | null;
   self: 0 | 1; // client-side only
 }
 
@@ -30,6 +27,7 @@ type GameContextType = {
   joinGame: (joinCode: string) => Promise<void>;
   handleMove: (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => void;
   error: string;
+  isLoading: boolean;
 }
 
 const GameContext = createContext<GameContextType>({} as GameContextType);
@@ -38,9 +36,11 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
   const [pairingCode, setPairingCode] = useState<string>("");
   const [game, setGame] = useState<Game | undefined>(undefined);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const { user } = useAuth();
   const { supabase } = useDB();
+  const { client: realtimeClient } = useAblyRealtime();
 
   const handleMove = async (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => {
     setError("");
@@ -113,144 +113,83 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
       .subscribe();
   }
 
-  const handlePairingComplete = async (data: PairingCodesData): Promise<boolean> => {
-    const { data: gameDataResult, error: getGameDataError } = await supabase
-      .from('Games')
-      .select()
-      .eq("game_id", data.game_id);
+  const subscribeToLobby = (code: string, expiration: number) => {
+    const clearTimeouts = () => {
+      if (expirationTimer) clearTimeout(expirationTimer);
+    }
+    
+    const expirationTimer = setTimeout(() => {
+      setError("Pairing code expired");
+      setPairingCode("");
+      unsubscribe();
+    }, expiration * 1000);
 
-    if (getGameDataError) {
-      setError(getGameDataError.message);
-      return false;
+    const unsubscribe = () => {
+      if (channel) {
+        channel.unsubscribe();
+        channel.detach(); // need to detach to release channel, unsubscribe doesn't cut it
+      }
     }
 
-    const gameData = gameDataResult[0];
+    const channel = realtimeClient.channels.get(code);
+    channel.subscribe((message) => {
+      if (message.name === "game") {
+        const game = JSON.parse(message.data) as GameEntity;
 
-    setGame({
-      ...gameData,
-      current_turn: gameData.current_turn === true ? 1 : gameData.current_turn === false ? 0 : null,
-      self: 0
+        setGame({
+          ...game,
+          current_turn: game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
+          self: 0
+        });
+        setPairingCode("");
+
+        subscribeToGameChanges(game.game_id);
+      }
+      clearTimeouts();
+      unsubscribe();
     });
-
-    subscribeToGameChanges(data.game_id);
-    return true;
-  }
-
-  const deletePairingCode = async (code: string) => {
-    await supabase
-      .from('PairingCodes')
-      .delete()
-      .eq("code", code);
   }
 
   const createGame = async () => {
     setError("");
 
-    if (pairingCode) {
-      // delete old pairing code we are about to replace
-      await deletePairingCode(pairingCode);
+    setIsLoading(true);
+    // TODO: remove player name from param and replace with auth0 access token
+    const resp = await fetch(`/api/pair?player=${user?.email}`);
+    setIsLoading(false);
+
+    if (!resp.ok) {
+      setError("Could not create game");
+      return;
     }
 
-    const code = generatePairingCode();
-    const player0 = user?.email;
-    const { error } = await supabase
-      .from('PairingCodes')
-      .insert({ code, player0 });
+    const { code, expiration } = await resp.json();
+    setPairingCode(code);
 
-    if (error) {
-      setError(error.message);
-    } else {
-      setPairingCode(code);
-
-      const pairingChannel = supabase
-        .channel(`${user?.email}-${code}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'PairingCodes',
-            filter: `code=eq.${code}`
-          },
-          async (payload) => {
-            if (await handlePairingComplete(payload.new as PairingCodesData)) {
-              setPairingCode("");
-
-              // remove pairing code since pairing is complete
-              await deletePairingCode(code);
-
-              pairingChannel.unsubscribe();
-            }
-          }
-        )
-        .subscribe()
-    }
+    subscribeToLobby(code, expiration);
   };
 
   const joinGame = async (joinCode: string) => {
-    setError("");
+    setIsLoading(true);
+    // TODO: remove player name from param and replace with auth0 access token
+    const resp = await fetch(`/api/join?code=${joinCode}&player=${user?.email}`);
+    setIsLoading(false);
 
-    // does the pairing code exist & is it not yet paired
-    const { data: pairingDataResult, error: availabilityCheckError } = await supabase
-      .from('PairingCodes')
-      .select("player0, player1")
-      .eq('code', joinCode);
-
-    if (availabilityCheckError) {
-      setError(availabilityCheckError.message);
-      return;
+    if (resp.status !== 200) {
+      // TODO: better error stuff
+      setError("Could not join");
+      console.error("Could not join", resp);
     }
 
-    if (pairingDataResult.length === 0) {
-      setError("No matching Pairing Code found.");
-      return;
-    }
+    const { game } = await resp.json() as { game: GameEntity };
 
-    const pairingData = pairingDataResult[0];
+    setGame({
+      ...game,
+      current_turn: game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
+      self: 1
+    });
 
-    if (pairingData.player1 !== null) {
-      setError("Two players have already paired with this code.");
-      return;
-    }
-
-    // create a new game
-    const { data: gameDataResult, error: createGameError } = await supabase
-      .from('Games')
-      .insert({
-        player0: pairingData.player0,
-        player1: user?.email,
-        board: initialBoardState,
-        current_turn: 0
-      })
-      .select();
-
-    if (createGameError) {
-      setError(createGameError.message);
-      return;
-    }
-
-    const gameData = gameDataResult[0];
-
-    subscribeToGameChanges(gameData.game_id);
-
-    // complete the pairing data so the host gets the game id via subscription
-    const { error } = await supabase
-      .from('PairingCodes')
-      .update({
-        player1: user?.email,
-        game_id: gameData.game_id
-      })
-      .eq('code', joinCode);
-
-    if (error) {
-      setError(error.message);
-    } else {
-      setGame({
-        ...gameData,
-        current_turn: gameData.current_turn === true ? 1 : gameData.current_turn === false ? 0 : null,
-        self: 1
-      });
-    }
+    subscribeToGameChanges(game.game_id);
   };
 
   return (
@@ -262,6 +201,7 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
         joinGame,
         handleMove,
         error,
+        isLoading
       }}
     >
       {children}
