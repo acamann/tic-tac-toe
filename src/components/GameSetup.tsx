@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { useGameContext } from '../context/GameContext';
 import "./GameSetup.css";
+import { useAuth } from '../context/AuthContext';
 
 const GameSetup = () => {
   const [isJoining, setIsJoining] = useState(false);
@@ -22,7 +22,11 @@ const GameSetup = () => {
         <div>
           Welcome <b>{user?.email}</b>
         </div>
-        <a onClick={logout}>
+        <a onClick={() => logout({
+          logoutParams: {
+            returnTo: window.location.origin
+          }
+        })}>
           Log out
         </a>
       </div>

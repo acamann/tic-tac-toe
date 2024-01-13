@@ -6,16 +6,21 @@ import GameSetup from './components/GameSetup'
 import Game from './components/Game'
 import DBProvider from './context/DBContext'
 import AblyRealtimeProvider from './context/AblyRealtimeContext'
+import { useMemo } from 'react'
 
 const App = () => {
-  const { user } = useAuth();
-  const { game, error } = useGameContext();
+  const { isLoading: isAuthLoading, error: authError, user } = useAuth();
+  const { game, error: gameError } = useGameContext();
+
+  const error = useMemo(() => authError?.message ?? gameError, [authError, gameError]);
 
   return (
     <>
       <h1>Tic Tac Toe</h1>
       {error && <div className="error">{error}</div>}
-      { !user ? (
+      { isAuthLoading ? (
+        "Loading..."
+      ) : !user ? (
         <Authenticate />
       ) : !game ? (
         <GameSetup />
