@@ -1,16 +1,16 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { generatePairingCode } from "./_pairing-utils.js";
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { generatePairingCode } from "../../src/utils/pairing";
 import { Redis } from "ioredis";
 
-if (!process.env.VITE_UPSTASH_CONNECTION_URL) {
-  throw new Error("Missing required environment variable VITE_UPSTASH_CONNECTION_URL");
+if (!process.env.UPSTASH_CONNECTION_URL) {
+  throw new Error("Missing required environment variable UPSTASH_CONNECTION_URL");
 }
 
-const redis = new Redis(process.env.VITE_UPSTASH_CONNECTION_URL);
+const redis = new Redis(process.env.UPSTASH_CONNECTION_URL);
 
 export default async function handler(
-  request: VercelRequest,
-  response: VercelResponse,
+  request: NextApiRequest,
+  response: NextApiResponse
 ) {
   try {
     if (request.method === "GET") {

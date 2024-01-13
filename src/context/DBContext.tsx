@@ -10,8 +10,8 @@ const DBContext = createContext<DBContextType>({} as DBContextType);
 export const useDB = () => useContext(DBContext);
 
 const DBProvider = ({ children }: React.PropsWithChildren) => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "unset";
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY ?? "unset";
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   return (
