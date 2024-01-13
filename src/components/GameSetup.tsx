@@ -22,7 +22,11 @@ const GameSetup = () => {
         <div>
           Welcome <b>{user?.email}</b>
         </div>
-        <a onClick={() => logout()}>
+        <a onClick={() => logout({
+          logoutParams: {
+            returnTo: window.location.origin
+          }
+        })}>
           Log out
         </a>
       </div>
