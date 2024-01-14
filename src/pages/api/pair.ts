@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { generatePairingCode } from "../../src/utils/pairing";
+import { generatePairingCode } from "./../../utils/pairing";
 import { Redis } from "ioredis";
 
 if (!process.env.UPSTASH_CONNECTION_URL) {

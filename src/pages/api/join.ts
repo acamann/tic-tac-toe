@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import Redis from "ioredis";
 import Ably from 'ably';
 import { createClient } from "@supabase/supabase-js";
-import { initialBoardState } from '../../src/utils/BoardUtils';
+import { initialBoardState } from "./../../utils/BoardUtils";
 
 // Redis Cache - for pairing code
 if (!process.env.UPSTASH_CONNECTION_URL) {
