@@ -1,37 +1,37 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { NextApiRequest, NextApiResponse } from 'next'
 import Redis from "ioredis";
 import Ably from 'ably';
 import { createClient } from "@supabase/supabase-js";
-import { initialBoardState } from '../src/utils/BoardUtils.js';
+import { initialBoardState } from "./../../utils/BoardUtils";
 
 // Redis Cache - for pairing code
-if (!process.env.VITE_UPSTASH_CONNECTION_URL) {
-  throw new Error("Missing required environment variable VITE_UPSTASH_CONNECTION_URL");
+if (!process.env.UPSTASH_CONNECTION_URL) {
+  throw new Error("Missing required environment variable UPSTASH_CONNECTION_URL");
 }
 
-const redis = new Redis(process.env.VITE_UPSTASH_CONNECTION_URL);
+const redis = new Redis(process.env.UPSTASH_CONNECTION_URL);
 
-if (!process.env.VITE_SUPABASE_URL) {
-  throw new Error("Missing required environment variable VITE_SUPABASE_URL");
+if (!process.env.SUPABASE_URL) {
+  throw new Error("Missing required environment variable SUPABASE_URL");
 }
-if (!process.env.VITE_SUPABASE_KEY) {
-  throw new Error("Missing required environment variable VITE_SUPABASE_KEY");
+if (!process.env.SUPABASE_KEY) {
+  throw new Error("Missing required environment variable SUPABASE_KEY");
 }
 
 // Supabase DB - for persisted game state
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.VITE_SUPABASE_KEY;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-if (!process.env.VITE_ABLY_API_KEY) {
-  throw new Error("Missing VITE_ABLY_API_KEY");
+if (!process.env.ABLY_API_KEY) {
+  throw new Error("Missing ABLY_API_KEY");
 }
 
-const realtime = new Ably.Realtime({ key: process.env.VITE_ABLY_API_KEY });
-
+const realtime = new Ably.Realtime({ key: process.env.ABLY_API_KEY });
+ 
 export default async function handler(
-  request: VercelRequest,
-  response: VercelResponse,
+  request: NextApiRequest,
+  response: NextApiResponse
 ) {
   try {
     if (request.method === "GET") {
@@ -43,7 +43,7 @@ export default async function handler(
         // TODO: get this from auth access token instead
         return response.status(400).json({ message: "A player name is required" });
       }
-      return await joinExistingCode(code, player, request, response);
+      return await joinExistingCode(code, player, response);
     } else {
       return response.status(405);
     }
@@ -52,7 +52,7 @@ export default async function handler(
   }
 }
 
-const joinExistingCode = async (code: string, player2: string, request: VercelRequest, response: VercelResponse): Promise<VercelResponse> => {
+const joinExistingCode = async (code: string, player2: string, response: NextApiResponse): Promise<void> => {
   const pairing = await redis.get(code);
   
   if (!pairing) {

@@ -1,14 +1,14 @@
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 
-if (!import.meta.env.VITE_AUTH_0_DOMAIN) {
-  throw new Error("Missing VITE_AUTH_0_DOMAIN");
+if (!process.env.NEXT_PUBLIC_AUTH_0_DOMAIN) {
+  throw new Error("Missing NEXT_PUBLIC_AUTH_0_DOMAIN");
 }
-const domain = import.meta.env.VITE_AUTH_0_DOMAIN;
+const domain = process.env.NEXT_PUBLIC_AUTH_0_DOMAIN;
 
-if (!import.meta.env.VITE_AUTH_0_CLIENT_ID) {
-  throw new Error("Missing VITE_AUTH_0_CLIENT_ID");
+if (!process.env.NEXT_PUBLIC_AUTH_0_CLIENT_ID) {
+  throw new Error("Missing NEXT_PUBLIC_AUTH_0_CLIENT_ID");
 }
-const clientId = import.meta.env.VITE_AUTH_0_CLIENT_ID;
+const clientId = process.env.NEXT_PUBLIC_AUTH_0_CLIENT_ID;
 
 export const useAuth = useAuth0;
 
