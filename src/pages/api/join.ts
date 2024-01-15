@@ -3,6 +3,7 @@ import Redis from "ioredis";
 import Ably from 'ably';
 import { createClient } from "@supabase/supabase-js";
 import { initialBoardState } from "./../../utils/BoardUtils";
+import { getSession, withApiAuthRequired } from '@auth0/nextjs-auth0';
 
 // Redis Cache - for pairing code
 if (!process.env.UPSTASH_CONNECTION_URL) {
@@ -29,20 +30,23 @@ if (!process.env.ABLY_API_KEY) {
 
 const realtime = new Ably.Realtime({ key: process.env.ABLY_API_KEY });
  
-export default async function handler(
+export default withApiAuthRequired(async function handler(
   request: NextApiRequest,
   response: NextApiResponse
 ) {
   try {
     if (request.method === "GET") {
-      const { code, player } = request.query;
+      const session = await getSession(request, response);
+      if (!session) {
+        return response.status(401);
+      }
+      const player = session.user.nickname ?? session.user.name;
+
+      const { code } = request.query;
       if (!code || Array.isArray(code)) {
         return response.status(400).json({ message: "A single code paramter is required" });
       }
-      if (!player || Array.isArray(player)) {
-        // TODO: get this from auth access token instead
-        return response.status(400).json({ message: "A player name is required" });
-      }
+
       return await joinExistingCode(code, player, response);
     } else {
       return response.status(405);
@@ -50,7 +54,7 @@ export default async function handler(
   } catch (e) {
     return response.status(500).json({ message: "An unknown error occurred" });
   }
-}
+});
 
 const joinExistingCode = async (code: string, player2: string, response: NextApiResponse): Promise<void> => {
   const pairing = await redis.get(code);

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { generatePairingCode } from "./../../utils/pairing";
 import { Redis } from "ioredis";
+import { getSession, withApiAuthRequired } from '@auth0/nextjs-auth0';
 
 if (!process.env.UPSTASH_CONNECTION_URL) {
   throw new Error("Missing required environment variable UPSTASH_CONNECTION_URL");
@@ -8,18 +9,17 @@ if (!process.env.UPSTASH_CONNECTION_URL) {
 
 const redis = new Redis(process.env.UPSTASH_CONNECTION_URL);
 
-export default async function handler(
+export default withApiAuthRequired(async function handler(
   request: NextApiRequest,
   response: NextApiResponse
 ) {
   try {
     if (request.method === "GET") {
-
-      const { player } = request.query;
-      if (!player || Array.isArray(player)) {
-        // TODO: get this from auth access token instead
-        return response.status(400).json({ message: "A player name is required" });
+      const session = await getSession(request, response);
+      if (!session) {
+        return response.status(401);
       }
+      const player = session.user.nickname ?? session.user.name;
 
       const codeExpirationSeconds = 90;
       const code = generatePairingCode();
@@ -38,4 +38,4 @@ export default async function handler(
   } catch (e) {
     return response.status(500).json({ message: "An unknown error occurred" });
   }
-}
+});

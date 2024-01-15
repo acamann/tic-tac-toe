@@ -1,13 +1,11 @@
 import './Authenticate.css';
-import { useAuth } from "../context/AuthContext";
 
 const Authenticate = () => {
-  const { loginWithRedirect } = useAuth();
   return (
     <div className="authenticate">
-      <button onClick={() => loginWithRedirect()}>
+      <a href="/api/auth/login">
         Login
-      </button>
+      </a>
     </div>
   );
 }

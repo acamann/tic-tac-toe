@@ -7,7 +7,7 @@ const GameSetup = () => {
   const [isJoining, setIsJoining] = useState(false);
   const [joinCode, setJoinCode] = useState("");
 
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const {
     createGame,
@@ -22,11 +22,7 @@ const GameSetup = () => {
         <div>
           Welcome <b>{user?.email}</b>
         </div>
-        <a onClick={() => logout({
-          logoutParams: {
-            returnTo: window.location.origin
-          }
-        })}>
+        <a href="/api/auth/logout">
           Log out
         </a>
       </div>
