@@ -1,15 +1,15 @@
 import './App.css'
 import { GameContextProvider, useGameContext } from './context/GameContext'
-import AuthProvider, { useAuth } from './context/AuthContext'
 import Authenticate from './components/Authenticate'
 import GameSetup from './components/GameSetup'
 import Game from './components/Game'
 import DBProvider from './context/DBContext'
 import AblyRealtimeProvider from './context/AblyRealtimeContext'
 import { useMemo } from 'react'
+import { UserProvider, useUser } from '@auth0/nextjs-auth0/client'
 
 const App = () => {
-  const { isLoading: isAuthLoading, error: authError, user } = useAuth();
+  const { isLoading: isAuthLoading, error: authError, user } = useUser();
   const { game, error: gameError } = useGameContext();
 
   const error = useMemo(() => authError?.message ?? gameError, [authError, gameError]);
@@ -36,11 +36,11 @@ const AppWrapper = () => {
   return (
     <DBProvider>
       <AblyRealtimeProvider>
-        <AuthProvider>
+        <UserProvider>
           <GameContextProvider>
             <App />
           </GameContextProvider>
-        </AuthProvider>
+        </UserProvider>
       </AblyRealtimeProvider>
     </DBProvider>
   )

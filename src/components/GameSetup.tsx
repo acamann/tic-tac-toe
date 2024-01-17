@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useGameContext } from '../context/GameContext';
 import "./GameSetup.css";
-import { useAuth } from '../context/AuthContext';
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 const GameSetup = () => {
   const [isJoining, setIsJoining] = useState(false);
   const [joinCode, setJoinCode] = useState("");
 
-  const { user, logout } = useAuth();
+  const { user } = useUser();
 
   const {
     createGame,
@@ -20,13 +20,9 @@ const GameSetup = () => {
     <div className="setup">
       <div className="user">
         <div>
-          Welcome <b>{user?.email}</b>
+          Welcome <b>{user?.nickname ?? user?.name}</b>
         </div>
-        <a onClick={() => logout({
-          logoutParams: {
-            returnTo: window.location.origin
-          }
-        })}>
+        <a href="/api/auth/logout">
           Log out
         </a>
       </div>
