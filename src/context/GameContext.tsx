@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from "react";
 import { GameBoard } from "../types/models";
 import { getNewBoard, getWinner, isDraw, isValidMove } from "../utils/BoardUtils";
-import { useAuth } from "./AuthContext";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { useDB } from "./DBContext";
 import { useAblyRealtime } from "./AblyRealtimeContext";
 
@@ -38,7 +38,7 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const { user } = useAuth();
+  const { user } = useUser();
   const { supabase } = useDB();
   const { client: realtimeClient } = useAblyRealtime();
 
