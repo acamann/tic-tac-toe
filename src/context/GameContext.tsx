@@ -1,19 +1,9 @@
 import { createContext, useContext, useState } from "react";
-import { GameBoard } from "../types/models";
+import { GameEntity } from "../types/models";
 import { getNewBoard, getWinner, isDraw, isValidMove } from "../utils/BoardUtils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useDB } from "./DBContext";
 import { useAblyRealtime } from "./AblyRealtimeContext";
-
-type GameEntity = {
-  game_id: string;
-  board: GameBoard;
-  player0: string;
-  player1: string;
-  current_turn: boolean | null;
-  winner: string | null;
-  is_draw: boolean | null;
-}
 
 type Game = Omit<GameEntity, 'current_turn'> & {
   current_turn: 0 | 1 | null;
@@ -46,39 +36,16 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
     setError("");
     try
     {
-      if (!game) {
-        throw new Error("Unknown game");
-      }
-      if (game.is_draw || game.winner) {
-        throw new Error(`The game is already over.`)
-      }
-      if (game.current_turn !== game.self) {
-        throw new Error("It's not your turn");
-      }
-      if (!isValidMove(game.board, { player: game.current_turn, rowIndex, colIndex })) {
-        throw new Error("Invalid move");
-      }
-
-      const newBoard = getNewBoard(game.board, {
-        player: game.self,
-        rowIndex,
-        colIndex
+      const resp = await fetch(`/api/games/${game?.game_id}/moves`, {
+        method: "PUT",
+        body: JSON.stringify({ rowIndex, colIndex }),
+        headers: new Headers({ // figure out why needed
+          'Content-Type': 'application/json'
+        }),
       });
-
-      const winner = getWinner(newBoard);
-
-      const { error } = await supabase
-        .from('Games')
-        .update({
-          board: newBoard,
-          current_turn: winner === null ? (game.current_turn === 0 ? true : false) : null,
-          winner: winner === 0 ? game.player0 : winner === 1 ? game.player1 : null,
-          is_draw: isDraw(newBoard)
-        })
-        .eq('game_id', game.game_id)
-
-      if (error) {
-        setError(error.message);
+      if (!resp.ok) {
+        const body = await resp.json() as { message?: string };
+        throw new Error(body.message);
       }
     } catch (e) {
       setError((e as { message: string }).message ?? "Unknown Problem");
