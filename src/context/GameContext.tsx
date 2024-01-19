@@ -1,7 +1,5 @@
 import { createContext, useContext, useState } from "react";
 import { GameEntity } from "../types/models";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { useDB } from "./DBContext";
 import { useAblyRealtime } from "./AblyRealtimeContext";
 
 type Game = Omit<GameEntity, 'current_turn'> & {
@@ -27,8 +25,6 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const { user } = useUser();
-  const { supabase } = useDB();
   const { client: realtimeClient } = useAblyRealtime();
 
   const handleMove = async (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => {
@@ -52,31 +48,27 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
   }
 
   const subscribeToGameChanges = (game_id: string) => {
-    const channel = supabase
-      .channel(`${user?.email}${game_id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'Games',
-          filter: `game_id=eq.${game_id}`
-        },
-        async (payload) => {
-          setError("");
+    // TODO: figure out how/when to clean this up
 
-          setGame(current => ({
-            ...current,
-            ...payload.new,
-            current_turn: payload.new.current_turn === true ? 1 : payload.new.current_turn === false ? 0 : null,
-          } as Game));
+    // const unsubscribe = () => {
+    //   if (channel) {
+    //     channel.unsubscribe();
+    //     channel.detach(); // need to detach to release channel, unsubscribe doesn't cut it
+    //   }
+    // }
 
-          if (payload.new.winner !== null || payload.new.is_draw) {
-            channel.unsubscribe();
-          }
-        }
-      )
-      .subscribe();
+    const channel = realtimeClient.channels.get(game_id);
+    channel.subscribe((message) => {
+      if (message.name === "game") {
+        const game = JSON.parse(message.data) as GameEntity;
+
+        setGame(current => current && ({
+          ...current,
+          ...game,
+          current_turn: game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
+        }));
+      }
+    });
   }
 
   const subscribeToLobby = (code: string, expiration: number) => {

@@ -1,24 +1,21 @@
 import { useEffect, useState } from "react";
 import "./Leaderboard.css";
-import { useDB } from "../context/DBContext";
 
 type Rank = { winner: string, wins: number };
 
 const Leaderboard = () => {
   const [leaders, setLeaders] = useState<Rank[]>();
 
-  const { supabase } = useDB();
-
   useEffect(() => {
-    supabase
-      .from('leaderboard')
-      .select("winner, wins")
-      .then(({ data }) => {
-        if (data) {
-          setLeaders(data);
-        }
-      });
-  }, [supabase]);
+    async function getLeaders() {
+      const resp = await fetch('api/leaderboard');
+      if (resp.ok) {
+        const data = await resp.json() as Rank[];
+        setLeaders(data);
+      }
+    }
+    getLeaders();
+  }, []);
 
   return (
     <div className="leaderboard">
