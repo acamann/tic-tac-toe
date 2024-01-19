@@ -1,19 +1,6 @@
 import { createContext, useContext, useState } from "react";
-import { GameBoard } from "../types/models";
-import { getNewBoard, getWinner, isDraw, isValidMove } from "../utils/BoardUtils";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { useDB } from "./DBContext";
+import { GameEntity } from "../types/models";
 import { useAblyRealtime } from "./AblyRealtimeContext";
-
-type GameEntity = {
-  game_id: string;
-  board: GameBoard;
-  player0: string;
-  player1: string;
-  current_turn: boolean | null;
-  winner: string | null;
-  is_draw: boolean | null;
-}
 
 type Game = Omit<GameEntity, 'current_turn'> & {
   current_turn: 0 | 1 | null;
@@ -38,47 +25,22 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const { user } = useUser();
-  const { supabase } = useDB();
   const { client: realtimeClient } = useAblyRealtime();
 
   const handleMove = async (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => {
     setError("");
     try
     {
-      if (!game) {
-        throw new Error("Unknown game");
-      }
-      if (game.is_draw || game.winner) {
-        throw new Error(`The game is already over.`)
-      }
-      if (game.current_turn !== game.self) {
-        throw new Error("It's not your turn");
-      }
-      if (!isValidMove(game.board, { player: game.current_turn, rowIndex, colIndex })) {
-        throw new Error("Invalid move");
-      }
-
-      const newBoard = getNewBoard(game.board, {
-        player: game.self,
-        rowIndex,
-        colIndex
+      const resp = await fetch(`/api/games/${game?.game_id}/moves`, {
+        method: "PUT",
+        body: JSON.stringify({ rowIndex, colIndex }),
+        headers: new Headers({ // figure out why needed
+          'Content-Type': 'application/json'
+        }),
       });
-
-      const winner = getWinner(newBoard);
-
-      const { error } = await supabase
-        .from('Games')
-        .update({
-          board: newBoard,
-          current_turn: winner === null ? (game.current_turn === 0 ? true : false) : null,
-          winner: winner === 0 ? game.player0 : winner === 1 ? game.player1 : null,
-          is_draw: isDraw(newBoard)
-        })
-        .eq('game_id', game.game_id)
-
-      if (error) {
-        setError(error.message);
+      if (!resp.ok) {
+        const body = await resp.json() as { message?: string };
+        throw new Error(body.message);
       }
     } catch (e) {
       setError((e as { message: string }).message ?? "Unknown Problem");
@@ -86,31 +48,27 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
   }
 
   const subscribeToGameChanges = (game_id: string) => {
-    const channel = supabase
-      .channel(`${user?.email}${game_id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'Games',
-          filter: `game_id=eq.${game_id}`
-        },
-        async (payload) => {
-          setError("");
+    // TODO: figure out how/when to clean this up
 
-          setGame(current => ({
-            ...current,
-            ...payload.new,
-            current_turn: payload.new.current_turn === true ? 1 : payload.new.current_turn === false ? 0 : null,
-          } as Game));
+    // const unsubscribe = () => {
+    //   if (channel) {
+    //     channel.unsubscribe();
+    //     channel.detach(); // need to detach to release channel, unsubscribe doesn't cut it
+    //   }
+    // }
 
-          if (payload.new.winner !== null || payload.new.is_draw) {
-            channel.unsubscribe();
-          }
-        }
-      )
-      .subscribe();
+    const channel = realtimeClient.channels.get(game_id);
+    channel.subscribe((message) => {
+      if (message.name === "game") {
+        const game = JSON.parse(message.data) as GameEntity;
+
+        setGame(current => current && ({
+          ...current,
+          ...game,
+          current_turn: game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
+        }));
+      }
+    });
   }
 
   const subscribeToLobby = (code: string, expiration: number) => {

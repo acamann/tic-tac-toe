@@ -5,7 +5,6 @@ import { NextRequest } from 'next/server';
 export default handleAuth({
   login: async (req: NextRequest, res: AppRouteHandlerFnContext) => {
       const { redirectUri, returnTo } = getAuth0Urls(req);
-      console.log([redirectUri, returnTo])
       return await handleLogin(req as NextRequest, res, {
           authorizationParams: {
               redirect_uri: redirectUri,
