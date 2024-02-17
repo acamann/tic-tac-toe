@@ -6,6 +6,7 @@ import Game from './components/Game'
 import AblyRealtimeProvider from './context/AblyRealtimeContext'
 import { useMemo } from 'react'
 import { UserProvider, useUser } from '@auth0/nextjs-auth0/client'
+import RoomTest from './components/RoomTest'
 
 const App = () => {
   const { isLoading: isAuthLoading, error: authError, user } = useUser();
@@ -22,7 +23,8 @@ const App = () => {
       ) : !user ? (
         <Authenticate />
       ) : !game ? (
-        <GameSetup />
+          <RoomTest />
+          // <GameSetup />
       ) : (
         <Game />
       )}
