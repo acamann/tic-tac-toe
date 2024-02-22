@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { createClient } from '@supabase/supabase-js';
 import { getSession, withApiAuthRequired } from '@auth0/nextjs-auth0';
 import { RoomEntity } from './../../../../types/models';
+import Ably from "ably";
 
 const ROOM_MAX = 2;
 
@@ -16,6 +17,12 @@ if (!process.env.SUPABASE_KEY) {
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+if (!process.env.ABLY_API_KEY) {
+  throw new Error("Missing ABLY_API_KEY");
+}
+
+const realtime = new Ably.Realtime({ key: process.env.ABLY_API_KEY });
 
 export default withApiAuthRequired(async function handler(
   request: NextApiRequest,
@@ -44,6 +51,7 @@ export default withApiAuthRequired(async function handler(
 
       return response.status(200).json(room);
     } else if (request.method === "PUT") {
+      // TODO: switch to using user id
       const player: string = session.user.nickname ?? session.user.name;
 
       // already in another room?
@@ -84,15 +92,21 @@ export default withApiAuthRequired(async function handler(
       }
 
       // add self to room
-      const newPlayers = [...room.players, player];
+      room.players = [...room.players, player];
+      room.last_touched = new Date();
 
       const { error } = await supabase.from('Rooms')
-        .update({ "players": newPlayers })
+        .update(room)
         .eq("id", id);
 
       if (error) {
         return response.status(409).json({ message: error.message });
       }
+      
+      // pub update to realtime lobby channel
+      const channel = realtime.channels.get("Lobby");
+      channel.publish("update", JSON.stringify(room));
+      channel.detach();
 
       return response.status(204).end();
     } else if (request.method === "DELETE") {
@@ -126,13 +140,26 @@ export default withApiAuthRequired(async function handler(
           return response.status(409).json({ message: deleteError.message });
         }
 
+        // pub update to realtime lobby channel
+        const channel = realtime.channels.get("Lobby");
+        channel.publish("delete", JSON.stringify(room));
+        channel.detach();
+
         return response.status(204).end();
       }
 
-      const newPlayers = room.players.filter(p => p !== player)
+      // remove self from room
+      room.players = room.players.filter(p => p !== player);
+      room.last_touched = new Date();
+
       const { error } = await supabase.from('Rooms')
-        .update({ players: newPlayers })
+        .update(room)
         .eq("id", id);
+
+      // pub update to realtime lobby channel
+      const channel = realtime.channels.get("Lobby");
+      channel.publish("update", JSON.stringify(room));
+      channel.detach();
 
       if (error) {
         return response.status(409).json({ message: error.message });

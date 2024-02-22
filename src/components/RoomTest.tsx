@@ -3,6 +3,7 @@ import "./GameSetup.css";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { RoomEntity } from '../types/models';
 import { useAblyRealtime } from '../context/AblyRealtimeContext';
+import { useGameContext } from '../context/GameContext';
 
 const RoomTest = () => {
   const [rooms, setRooms] = useState<RoomEntity[]>([]);
@@ -16,12 +17,20 @@ const RoomTest = () => {
 
   const { client: realtimeClient } = useAblyRealtime();
 
+  const { startGame } = useGameContext();
+
   useEffect(() => {
     const channel = realtimeClient.channels.get("Lobby");
     channel.subscribe((message) => {
-      if (message.name === "rooms") {
-        const rooms = JSON.parse(message.data) as RoomEntity[];
-        setRooms(rooms);
+      if (message.name === "create") {
+        const room = JSON.parse(message.data) as RoomEntity;
+        setRooms(current => [...current, room]);
+      } else if (message.name === "update") {
+        const room = JSON.parse(message.data) as RoomEntity;
+        setRooms(current => current.map(currentRoom => currentRoom.id === room.id ? room : currentRoom));
+      } else if (message.name === "delete") {
+        const room = JSON.parse(message.data) as RoomEntity;
+        setRooms(current => current.filter(currentRoom => currentRoom.id !== room.id));
       }
     });
 
@@ -37,6 +46,8 @@ const RoomTest = () => {
     return null;
   }
 
+  // TODO: RTK Query all of these
+
   const createRoom = async () => {
     const resp = await fetch(`/api/rooms`, {
       method: "POST"
@@ -44,7 +55,6 @@ const RoomTest = () => {
     if (!resp.ok) {
       console.error(resp);
     }
-    else { await getRooms() } // poor mans realtime
   };
 
   const getRooms = async () => {
@@ -65,7 +75,6 @@ const RoomTest = () => {
     if (!resp.ok) {
       console.error(resp);
     }
-    else { await getRooms() } // poor mans realtime
   };
 
   const leaveRoom = async (id: string) => {
@@ -75,7 +84,6 @@ const RoomTest = () => {
     if (!resp.ok) {
       console.error(resp);
     }
-    else { await getRooms() } // poor mans realtime
   };
 
   return (
@@ -88,20 +96,30 @@ const RoomTest = () => {
           Log out
         </a>
       </div>
-      <button onClick={createRoom}>Create Room</button>
+      <button onClick={createRoom}>New Game</button>
+      <h2>Games</h2>
       <ul>
+        {/* TODO: clean up all the conditionals here */}
         {rooms.map(room => (
           <li key={room.id}>
-            {room.host} ({room.players.length})
+            <b>{room.host === userName ? "You" : room.host}</b> vs.
+            {room.players.length === 2 ? (
+              <> {room.players.filter(player => player !== room.host)}</>
+            ) : (
+              <i> (awaiting opponent...)</i>
+            )}
             {room.players.length < 2 && !room.players.includes(userName) && (
-              <button onClick={() => joinRoom(room.id)}>
+              <a onClick={() => joinRoom(room.id)} style={{ marginLeft: 8 }}>
                 Join
-              </button>
+              </a>
             )}
             {room.players.includes(userName) && (
-              <button onClick={() => leaveRoom(room.id)}>
+              <a onClick={() => leaveRoom(room.id)} style={{ marginLeft: 8 }}>
                 Leave
-              </button>
+              </a>
+            )}
+            {room.players.length === 2 && room.host === userName && (
+              <button onClick={() => startGame(room.id)} style={{ marginLeft: 8 }}>Start Game</button>
             )}
           </li>
         ))}

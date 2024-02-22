@@ -27,5 +27,5 @@ export type RoomEntity = {
   host: string;
   players: string[];
   created: Date;
-  last_touch: Date;
+  last_touched: Date;
 }
