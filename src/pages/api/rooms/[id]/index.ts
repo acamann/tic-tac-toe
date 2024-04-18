@@ -54,21 +54,19 @@ export default withApiAuthRequired(async function handler(
       // TODO: switch to using user id
       const player: string = session.user.nickname ?? session.user.name;
 
-      // already in another room?
+      const { data: currentRoomData, error: currentRoomError } = await supabase
+        .from('Rooms')
+        .select()
+        .filter('players', 'cs', `{${player}}`)
+        .returns<RoomEntity[]>();
 
-      // const { data: currentRoomData, error: currentRoomError } = await supabase
-      //   .from('Rooms')
-      //   .select()
-      //   .filter('players', 'cs', `{${player}}`)
-      //   .returns<RoomEntity[]>();
+      if (currentRoomError) {
+        return response.status(500).json(currentRoomError)
+      }
 
-      // if (currentRoomError) {
-      //   return response.status(500).json(currentRoomError)
-      // }
-
-      // if (!currentRoomData || currentRoomData.length > 0) {
-      //   return response.status(409).json({ message: "Already in a room", id: currentRoomData[0].id })
-      // }
+      if (!currentRoomData || currentRoomData.length > 0) {
+        return response.status(409).json({ message: "Already in a room", id: currentRoomData[0].id })
+      }
 
       const { data, error: findRoomError } = await supabase
         .from('Rooms')

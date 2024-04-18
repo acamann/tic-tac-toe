@@ -78,6 +78,7 @@ const Lobby = () => {
       method: "POST"
     });
     if (!resp.ok) {
+      // TODO: display errors to user
       console.error(resp);
     }
   };
@@ -85,6 +86,7 @@ const Lobby = () => {
   const getRooms = async () => {
     const resp = await fetch(`/api/rooms`);
     if (!resp.ok) {
+      // TODO: display errors to user
       console.error(resp);
       return;
     }
@@ -98,6 +100,7 @@ const Lobby = () => {
       method: "PUT"
     });
     if (!resp.ok) {
+      // TODO: display errors to user
       console.error(resp);
     }
   };
@@ -107,6 +110,7 @@ const Lobby = () => {
       method: "DELETE"
     });
     if (!resp.ok) {
+      // TODO: display errors to user
       console.error(resp);
     }
   };
