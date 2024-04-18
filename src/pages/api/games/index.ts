@@ -48,7 +48,6 @@ export default withApiAuthRequired(async function handler(
       }
 
       // create game from room (in body of request)
-      console.log(request.body);
       const { room_id } = JSON.parse(request.body);
 
       if (!room_id) {

@@ -13,15 +13,12 @@ export default withApiAuthRequired(async function handler(
 ) {
   try {
     if (request.method === "GET") {
-      console.log("GET")
-
       const session = await getSession(request, response);
       if (!session) {
         return response.status(401);
       }
 
-      console.log("I'm IN!")
-      
+      //TODO: probably there's a better way
       let tokenRequest;
       await ably.auth.createTokenRequest({ clientId: session.user.nickname }, null, (err, result) => {
         if (err) {
@@ -35,7 +32,6 @@ export default withApiAuthRequired(async function handler(
       return response.status(405);
     }
   } catch (e) {
-    console.log(e);
     return response.status(500).json({ message: "An unknown error occurred" });
   }
 });

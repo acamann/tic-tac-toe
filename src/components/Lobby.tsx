@@ -5,7 +5,7 @@ import { RoomEntity } from '../types/models';
 import { useAblyRealtime } from '../context/AblyRealtimeContext';
 import { useGameContext } from '../context/GameContext';
 
-const RoomTest = () => {
+const Lobby = () => {
   const [rooms, setRooms] = useState<RoomEntity[]>([]);
 
   const { user } = useUser();
@@ -153,4 +153,4 @@ const RoomTest = () => {
   );
 }
 
-export default RoomTest;
+export default Lobby;

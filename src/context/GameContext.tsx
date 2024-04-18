@@ -104,7 +104,6 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
       return;
     }
 
-    console.log("CREATED GAME!");
     const game = await resp.json() as GameEntity;
     setGame({
       ...game,
