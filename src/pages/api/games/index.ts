@@ -3,6 +3,7 @@ import { getSession, withApiAuthRequired } from '@auth0/nextjs-auth0';
 import { createClient } from '@supabase/supabase-js';
 import { GameEntity, RoomEntity } from '../../../types/models';
 import { initialBoardState } from '../../../utils/BoardUtils';
+import Ably from "ably";
 
 if (!process.env.SUPABASE_URL) {
   throw new Error("Missing required environment variable SUPABASE_URL");
@@ -15,6 +16,12 @@ if (!process.env.SUPABASE_KEY) {
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+if (!process.env.ABLY_API_KEY) {
+  throw new Error("Missing ABLY_API_KEY");
+}
+
+const realtime = new Ably.Realtime({ key: process.env.ABLY_API_KEY });
 
 export default withApiAuthRequired(async function handler(
   request: NextApiRequest,
@@ -87,13 +94,19 @@ export default withApiAuthRequired(async function handler(
           board: initialBoardState,
           current_turn: 0
         })
-        .select();
+        .select()
+        .returns<GameEntity[]>();
 
       if (createGameError) {
         return response.status(409).json({ message: createGameError.message });
       }
 
       const game = gameDataResult[0];
+
+      // pub update to realtime room channel
+      const channel = realtime.channels.get(room_id);
+      channel.publish("start", JSON.stringify({ gameId: game.game_id }));
+      channel.detach();
 
       return response.status(200).json(game);
     } else {

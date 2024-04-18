@@ -167,8 +167,10 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
     setGame({
       ...game,
       current_turn: game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
-      self: 1 // ????
+      self: 0 // ????
     });
+
+    subscribeToGameChanges(game.game_id);
   };
 
   return (
