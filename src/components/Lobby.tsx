@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import "./GameSetup.css";
+import "./Lobby.css";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { RoomEntity } from '../types/models';
 import { useAblyRealtime } from '../context/AblyRealtimeContext';
