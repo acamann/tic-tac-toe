@@ -1,10 +1,7 @@
 import { createContext, useContext } from "react";
 import * as Ably from 'ably';
 
-if (!process.env.NEXT_PUBLIC_ABLY_API_KEY) {
-  throw new Error("Missing NEXT_PUBLIC_ABLY_API_KEY");
-}
-const client = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
+const client = new Ably.Realtime({ authUrl: '/api/auth/realtime' });
 
 type AblyRealtimeContextType = {
   client: Ably.Realtime;
