@@ -113,6 +113,7 @@ export default withApiAuthRequired(async function handler(
       const channel = realtime.channels.get(game_id);
       channel.publish("game", JSON.stringify(updatedGameData));
       channel.detach();
+      realtime.close();
 
       return response.status(204).end();
     } else {

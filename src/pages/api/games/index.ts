@@ -107,6 +107,7 @@ export default withApiAuthRequired(async function handler(
       const channel = realtime.channels.get(room_id);
       channel.publish("start", JSON.stringify({ gameId: game.game_id }));
       channel.detach();
+      realtime.close();
 
       return response.status(200).json(game);
     } else {
