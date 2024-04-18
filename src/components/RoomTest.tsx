@@ -17,7 +17,13 @@ const RoomTest = () => {
 
   const { client: realtimeClient } = useAblyRealtime();
 
-  const { startGame } = useGameContext();
+  const { startGame, joinGame } = useGameContext();
+
+  const myRoomId = useMemo(() => 
+    userName
+      ? rooms.find(r => r.players.includes(userName))?.id
+      : undefined
+    , [rooms, userName]);
 
   useEffect(() => {
     const channel = realtimeClient.channels.get("Lobby");
@@ -41,6 +47,25 @@ const RoomTest = () => {
       }
     }
   }, [realtimeClient.channels]);
+
+  useEffect(() => {
+    if (myRoomId) {
+      const channel = realtimeClient.channels.get(myRoomId);
+      channel.subscribe((message) => {
+        if (message.name === "start") {
+          const { gameId } = JSON.parse(message.data) as { gameId: string };
+          joinGame(gameId);
+        }
+      });
+
+      return () => {
+        if (channel) {
+          channel.unsubscribe();
+          channel.detach(); // need to detach to release channel, unsubscribe doesn't cut it
+        }
+      }
+    }
+  }, [realtimeClient.channels, myRoomId]);
 
   if (!userName) { 
     return null;

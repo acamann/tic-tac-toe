@@ -127,26 +127,26 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
     // subscribeToLobby(code, expiration);
   };
 
-  const joinGame = async (joinCode: string) => {
-    // setIsLoading(true);
-    // const resp = await fetch(`/api/join?code=${joinCode}`);
-    // setIsLoading(false);
+  const joinGame = async (gameId: string) => {
+    setIsLoading(true);
+    const resp = await fetch(`/api/games/${gameId}`);
+    setIsLoading(false);
 
-    // if (resp.status !== 200) {
-    //   // TODO: better error stuff
-    //   setError("Could not join");
-    //   console.error("Could not join", resp);
-    // }
+    if (resp.status !== 200) {
+      // TODO: better error stuff
+      setError("Could not join");
+      console.error("Could not join", resp);
+    }
 
-    // const { game } = await resp.json() as { game: GameEntity };
+    const game = await resp.json() as GameEntity;
 
-    // setGame({
-    //   ...game,
-    //   current_turn: game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
-    //   self: 1
-    // });
+    setGame({
+      ...game,
+      current_turn: game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
+      self: 1
+    });
 
-    // subscribeToGameChanges(game.game_id);
+    subscribeToGameChanges(game.game_id);
   };
 
   
@@ -164,7 +164,6 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
 
     console.log("CREATED GAME!");
     const game = await resp.json() as GameEntity;
-    console.log(game);
     setGame({
       ...game,
       current_turn: game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
