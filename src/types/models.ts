@@ -21,3 +21,11 @@ export type GameEntity = {
   winner: string | null;
   is_draw: boolean | null;
 }
+
+export type RoomEntity = {
+  id: string;
+  host: string;
+  players: string[];
+  created: Date;
+  last_touched: Date;
+}

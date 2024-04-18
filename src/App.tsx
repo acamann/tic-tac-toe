@@ -1,11 +1,11 @@
 import './App.css'
 import { GameContextProvider, useGameContext } from './context/GameContext'
 import Authenticate from './components/Authenticate'
-import GameSetup from './components/GameSetup'
 import Game from './components/Game'
 import AblyRealtimeProvider from './context/AblyRealtimeContext'
 import { useMemo } from 'react'
 import { UserProvider, useUser } from '@auth0/nextjs-auth0/client'
+import Lobby from './components/Lobby'
 
 const App = () => {
   const { isLoading: isAuthLoading, error: authError, user } = useUser();
@@ -22,7 +22,7 @@ const App = () => {
       ) : !user ? (
         <Authenticate />
       ) : !game ? (
-        <GameSetup />
+          <Lobby />
       ) : (
         <Game />
       )}

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import Ably from 'ably';
-import { withApiAuthRequired } from '@auth0/nextjs-auth0';
+import { getSession, withApiAuthRequired } from '@auth0/nextjs-auth0';
 
 if (!process.env.ABLY_API_KEY) {
   throw new Error("Missing ABLY_API_KEY");
@@ -15,13 +15,12 @@ export default withApiAuthRequired(async function handler(
   try {
     if (request.method === "GET") {
 
-      // const session = await getSession(request, response);
-      // if (!session) { 
-      //   return response.status(401).end();
-      // }
-      // attempt to use user info as client-id
+      const session = await getSession(request, response);
+      if (!session) { 
+        return response.status(401).end();
+      }
 
-      realtime.auth.createTokenRequest({ clientId: "tic-tac-toe-ably-client" }, (err, tokenRequest) => {
+      realtime.auth.createTokenRequest({ clientId: session.user.id }, null, (err, tokenRequest) => {
         if (err) {
           return response.status(500).json({ message: err.message });
         } else {
