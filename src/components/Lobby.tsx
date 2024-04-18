@@ -125,7 +125,7 @@ const Lobby = () => {
           Log out
         </a>
       </div>
-      <button onClick={createRoom}>New Game</button>
+      {!myRoomId && <button onClick={createRoom}>New Game</button>}
       <h2>Games</h2>
       <ul>
         {/* TODO: clean up all the conditionals here */}
@@ -133,16 +133,16 @@ const Lobby = () => {
           <li key={room.id}>
             <b>{room.host === userName ? "You" : room.host}</b> vs.
             {room.players.length === 2 ? (
-              <> {room.players.filter(player => player !== room.host)}</>
+              <>{room.players.filter(player => player !== room.host)}</>
             ) : (
               <i> (awaiting opponent...)</i>
             )}
-            {room.players.length < 2 && !room.players.includes(userName) && (
+            {!myRoomId && room.players.length < 2 && (
               <a onClick={() => joinRoom(room.id)} style={{ marginLeft: 8 }}>
                 Join
               </a>
             )}
-            {room.players.includes(userName) && (
+            {room.id === myRoomId && (
               <a onClick={() => leaveRoom(room.id)} style={{ marginLeft: 8 }}>
                 Leave
               </a>
