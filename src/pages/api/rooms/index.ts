@@ -81,7 +81,6 @@ export default withApiAuthRequired(async function handler(
       const channel = realtime.channels.get("Lobby");
       channel.publish("create", JSON.stringify(roomData));
       channel.detach();
-      realtime.close();
 
       return response.status(200).json(roomData);
     } else {

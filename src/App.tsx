@@ -1,7 +1,6 @@
 import './App.css'
 import { GameContextProvider, useGameContext } from './context/GameContext'
 import Authenticate from './components/Authenticate'
-//import GameSetup from './components/GameSetup'
 import Game from './components/Game'
 import AblyRealtimeProvider from './context/AblyRealtimeContext'
 import { useMemo } from 'react'
@@ -24,7 +23,6 @@ const App = () => {
         <Authenticate />
       ) : !game ? (
           <RoomTest />
-          // <GameSetup />
       ) : (
         <Game />
       )}

@@ -9,9 +9,7 @@ type Game = Omit<GameEntity, 'current_turn'> & {
 
 type GameContextType = {
   game: Game | undefined;
-  pairingCode: string;
   startGame: (roomId: string) => Promise<void>;
-  createGame: () => Promise<void>;
   joinGame: (joinCode: string) => Promise<void>;
   handleMove: (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => void;
   error: string;
@@ -21,7 +19,6 @@ type GameContextType = {
 const GameContext = createContext<GameContextType>({} as GameContextType);
 
 const GameContextProvider = ({ children }: React.PropsWithChildren) => {
-  const [pairingCode, setPairingCode] = useState<string>("");
   const [game, setGame] = useState<Game | undefined>(undefined);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -72,61 +69,6 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
     });
   }
 
-  // const subscribeToLobby = (code: string, expiration: number) => {
-  //   const clearTimeouts = () => {
-  //     if (expirationTimer) clearTimeout(expirationTimer);
-  //   }
-    
-  //   const expirationTimer = setTimeout(() => {
-  //     setError("Pairing code expired");
-  //     setPairingCode("");
-  //     unsubscribe();
-  //   }, expiration * 1000);
-
-  //   const unsubscribe = () => {
-  //     if (channel) {
-  //       channel.unsubscribe();
-  //       channel.detach(); // need to detach to release channel, unsubscribe doesn't cut it
-  //     }
-  //   }
-
-  //   const channel = realtimeClient.channels.get(code);
-  //   channel.subscribe((message) => {
-  //     if (message.name === "game") {
-  //       const game = JSON.parse(message.data) as GameEntity;
-
-  //       setGame({
-  //         ...game,
-  //         current_turn: game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
-  //         self: 0
-  //       });
-  //       setPairingCode("");
-
-  //       subscribeToGameChanges(game.game_id);
-  //     }
-  //     clearTimeouts();
-  //     unsubscribe();
-  //   });
-  // }
-
-  const createGame = async () => {
-    // setError("");
-
-    // setIsLoading(true);
-    // const resp = await fetch(`/api/pair`);
-    // setIsLoading(false);
-
-    // if (!resp.ok) {
-    //   setError("Could not create game");
-    //   return;
-    // }
-
-    // const { code, expiration } = await resp.json();
-    // setPairingCode(code);
-
-    // subscribeToLobby(code, expiration);
-  };
-
   const joinGame = async (gameId: string) => {
     setIsLoading(true);
     const resp = await fetch(`/api/games/${gameId}`);
@@ -176,10 +118,8 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
   return (
     <GameContext.Provider
       value={{
-        pairingCode,
         startGame,
         game,
-        createGame,
         joinGame,
         handleMove,
         error,

@@ -107,7 +107,6 @@ export default withApiAuthRequired(async function handler(
       const channel = realtime.channels.get("Lobby");
       channel.publish("update", JSON.stringify(room));
       channel.detach();
-      realtime.close();
 
       return response.status(204).end();
     } else if (request.method === "DELETE") {
@@ -145,7 +144,6 @@ export default withApiAuthRequired(async function handler(
         const channel = realtime.channels.get("Lobby");
         channel.publish("delete", JSON.stringify(room));
         channel.detach();
-        realtime.close();
 
         return response.status(204).end();
       }
@@ -162,7 +160,6 @@ export default withApiAuthRequired(async function handler(
       const channel = realtime.channels.get("Lobby");
       channel.publish("update", JSON.stringify(room));
       channel.detach();
-      realtime.close();
 
       if (error) {
         return response.status(409).json({ message: error.message });
