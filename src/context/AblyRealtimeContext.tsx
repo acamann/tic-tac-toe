@@ -1,8 +1,6 @@
 import { createContext, useContext } from "react";
 import * as Ably from 'ably';
 
-const client = new Ably.Realtime({ authUrl: '/api/auth/realtime' });
-
 type AblyRealtimeContextType = {
   client: Ably.Realtime;
 }
@@ -12,12 +10,10 @@ const AblyRealtimeContext = createContext<AblyRealtimeContextType>({} as AblyRea
 export const useAblyRealtime = () => useContext(AblyRealtimeContext);
 
 const AblyRealtimeProvider = ({ children }: React.PropsWithChildren) => {
+  const client = new Ably.Realtime({ authUrl: '/api/realtime/token' });
+
    return (
-    <AblyRealtimeContext.Provider 
-      value={{
-        client
-      }}
-    >
+    <AblyRealtimeContext.Provider value={{ client }}>
       {children}
     </AblyRealtimeContext.Provider>
   );
