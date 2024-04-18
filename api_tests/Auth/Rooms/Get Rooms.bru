@@ -1,0 +1,24 @@
+meta {
+  name: Get Rooms
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{api_base}}/api/rooms
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+vars:pre-request {
+  access_token: eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwiaXNzIjoiaHR0cHM6Ly9kZXYtbTA0cW92LXouYXV0aDAuY29tLyJ9..v_pkPrZrQ5oeNm0X.ioI2Rpy9FBFQ0v8HY3Zh-jH7y0m6cjvoR5NcRRm8Cvz1IZ5CsnjfFFp5kqb4HOU06rkttWb3gJaXvZb4sEy05uTZHWnjgDLyhQSMW5iWw6dcBGbwS7qt3-me3XWr5s-Gr5pcwgwIVqtWDKz9SBPSWNVKDTVV3eX33rdzGPESUeVthc0S5sTFiapV4QuKeD2ejVi2WsJrS6LArlCtelxXwEps2nXWHWhplDRnDJioDD6cXNNGC3LVdA7_X5dnoOODu9p9QfOacChkbi28zcOa-Qskis-m0ui7F_UP3ZJIq5dzurwV8E0kh4jAwpI.5b8Z_PkIUVn6D_U9hEmyYQ
+}
+
+assert {
+  res.status: eq 200
+  res.body.rooms: isJson
+}

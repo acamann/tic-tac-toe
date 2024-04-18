@@ -1,0 +1,40 @@
+meta {
+  name: Login
+  type: http
+  seq: 1
+}
+
+post {
+  url: n/a
+  body: none
+  auth: oauth2
+}
+
+headers {
+  audience: {{api_base}}
+}
+
+auth:oauth2 {
+  grant_type: authorization_code
+  callback_url: {{api_base}}/api/auth/callback
+  authorization_url: https://{{auth0_domain}}/authorize
+  access_token_url: https://{{auth0_domain}}/oauth/token
+  client_id: {{auth0_client_id}}
+  client_secret: {{auth0_client_secret}}
+  scope: openid email profile offline_access
+}
+
+vars:post-response {
+  access_token: res.body.access_token
+}
+
+assert {
+  res.status: eq 200
+  res.body.access_token: isString
+}
+
+docs {
+  ## Login
+  
+  Login to Tic-Tac-Toe using Auth0
+}
