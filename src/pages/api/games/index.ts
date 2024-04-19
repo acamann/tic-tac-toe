@@ -1,8 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { getSession, withApiAuthRequired } from '@auth0/nextjs-auth0';
-import { createClient } from '@supabase/supabase-js';
-import { GameEntity, RoomEntity } from '../../../types/models';
-import { initialBoardState } from '../../../utils/BoardUtils';
+import type { NextApiRequest, NextApiResponse } from "next";
+import { getSession, withApiAuthRequired } from "@auth0/nextjs-auth0";
+import { createClient } from "@supabase/supabase-js";
+import { GameEntity, RoomEntity } from "../../../types/models";
+import { initialBoardState } from "../../../utils/BoardUtils";
 import Ably from "ably";
 
 if (!process.env.SUPABASE_URL) {
@@ -25,14 +25,12 @@ const realtime = new Ably.Realtime({ key: process.env.ABLY_API_KEY });
 
 export default withApiAuthRequired(async function handler(
   request: NextApiRequest,
-  response: NextApiResponse
+  response: NextApiResponse,
 ) {
   try {
     if (request.method === "GET") {
-      const {
-        data,
-        error
-      } = await supabase.from('Games')
+      const { data, error } = await supabase
+        .from("Games")
         .select()
         .returns<GameEntity[]>();
 
@@ -51,47 +49,55 @@ export default withApiAuthRequired(async function handler(
       const { room_id } = JSON.parse(request.body);
 
       if (!room_id) {
-        return response.status(400).json({ message: "room_id is required in body" });
+        return response
+          .status(400)
+          .json({ message: "room_id is required in body" });
       }
       const playerName = session.user.nickname ?? session.user.name;
 
       // is it a known room, which the requestor is the host?
       const { data: roomData, error: roomError } = await supabase
-        .from('Rooms')
+        .from("Rooms")
         .select()
         .eq("id", room_id)
         .returns<RoomEntity[]>();
 
       if (!roomData || roomData.length === 0) {
-        return response.status(409).json({ message: roomError?.message ?? "Room not found" });
+        return response
+          .status(409)
+          .json({ message: roomError?.message ?? "Room not found" });
       }
 
       const room = roomData[0];
 
       if (playerName !== room.host) {
-        return response.status(403).json({ message: "Game can only be started by host" });
+        return response
+          .status(403)
+          .json({ message: "Game can only be started by host" });
       }
 
       if (room.players.length !== 2) {
-        return response.status(409).json({ message: "Game is not ready to start, 2 players are required" });
+        return response
+          .status(409)
+          .json({
+            message: "Game is not ready to start, 2 players are required",
+          });
       }
 
       const player0 = room.host;
-      const player1 = room.players.filter(player => player !== player0)[0];
+      const player1 = room.players.filter((player) => player !== player0)[0];
 
       // TODO: is there already a game in progress in this room?
 
       // create a new game (associated with the room)
       // store game
-      const {
-        data: gameDataResult,
-        error: createGameError
-      } = await supabase.from('Games')
+      const { data: gameDataResult, error: createGameError } = await supabase
+        .from("Games")
         .insert({
           player0,
           player1,
           board: initialBoardState,
-          current_turn: 0
+          current_turn: 0,
         })
         .select()
         .returns<GameEntity[]>();

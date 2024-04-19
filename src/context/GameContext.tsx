@@ -2,10 +2,10 @@ import { createContext, useContext, useState } from "react";
 import { GameEntity } from "../types/models";
 import { useAblyRealtime } from "./AblyRealtimeContext";
 
-type Game = Omit<GameEntity, 'current_turn'> & {
+type Game = Omit<GameEntity, "current_turn"> & {
   current_turn: 0 | 1 | null;
   self: 0 | 1; // client-side only
-}
+};
 
 type GameContextType = {
   game: Game | undefined;
@@ -14,7 +14,7 @@ type GameContextType = {
   handleMove: (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => void;
   error: string;
   isLoading: boolean;
-}
+};
 
 const GameContext = createContext<GameContextType>({} as GameContextType);
 
@@ -27,23 +27,23 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
 
   const handleMove = async (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => {
     setError("");
-    try
-    {
+    try {
       const resp = await fetch(`/api/games/${game?.game_id}/moves`, {
         method: "PUT",
         body: JSON.stringify({ rowIndex, colIndex }),
-        headers: new Headers({ // figure out why needed
-          'Content-Type': 'application/json'
+        headers: new Headers({
+          // figure out why needed
+          "Content-Type": "application/json",
         }),
       });
       if (!resp.ok) {
-        const body = await resp.json() as { message?: string };
+        const body = (await resp.json()) as { message?: string };
         throw new Error(body.message);
       }
     } catch (e) {
       setError((e as { message: string }).message ?? "Unknown Problem");
     }
-  }
+  };
 
   const subscribeToGameChanges = (game_id: string) => {
     // TODO: figure out how/when to clean this up
@@ -60,14 +60,22 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
       if (message.name === "game") {
         const game = JSON.parse(message.data) as GameEntity;
 
-        setGame(current => current && ({
-          ...current,
-          ...game,
-          current_turn: game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
-        }));
+        setGame(
+          (current) =>
+            current && {
+              ...current,
+              ...game,
+              current_turn:
+                game.current_turn === true
+                  ? 1
+                  : game.current_turn === false
+                    ? 0
+                    : null,
+            },
+        );
       }
     });
-  }
+  };
 
   const joinGame = async (gameId: string) => {
     setIsLoading(true);
@@ -80,35 +88,36 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
       console.error("Could not join", resp);
     }
 
-    const game = await resp.json() as GameEntity;
+    const game = (await resp.json()) as GameEntity;
 
     setGame({
       ...game,
-      current_turn: game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
-      self: 1
+      current_turn:
+        game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
+      self: 1,
     });
 
     subscribeToGameChanges(game.game_id);
   };
 
-  
   const startGame = async (roomId: string) => {
     const resp = await fetch(`/api/games`, {
       method: "PUT",
       body: JSON.stringify({
-        room_id: roomId
-      })
+        room_id: roomId,
+      }),
     });
     if (!resp.ok) {
       console.error(resp);
       return;
     }
 
-    const game = await resp.json() as GameEntity;
+    const game = (await resp.json()) as GameEntity;
     setGame({
       ...game,
-      current_turn: game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
-      self: 0 // ????
+      current_turn:
+        game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
+      self: 0, // ????
     });
 
     subscribeToGameChanges(game.game_id);
@@ -122,7 +131,7 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
         joinGame,
         handleMove,
         error,
-        isLoading
+        isLoading,
       }}
     >
       {children}

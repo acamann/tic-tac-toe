@@ -1,17 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { RoomEntity } from '../types/models';
-import { useAblyRealtime } from '../context/AblyRealtimeContext';
-import { useGameContext } from '../context/GameContext';
-import styled from 'styled-components';
+import { RoomEntity } from "../types/models";
+import { useAblyRealtime } from "../context/AblyRealtimeContext";
+import { useGameContext } from "../context/GameContext";
+import styled from "styled-components";
 
 const User = styled.div`
   margin: 24px 0;
-`
+`;
 
 const Link = styled.a`
   cursor: pointer;
-`
+`;
 
 const Lobby = () => {
   const [rooms, setRooms] = useState<RoomEntity[]>([]);
@@ -27,24 +27,32 @@ const Lobby = () => {
 
   const { startGame, joinGame } = useGameContext();
 
-  const myRoomId = useMemo(() => 
-    userName
-      ? rooms.find(r => r.players.includes(userName))?.id
-      : undefined
-    , [rooms, userName]);
+  const myRoomId = useMemo(
+    () =>
+      userName
+        ? rooms.find((r) => r.players.includes(userName))?.id
+        : undefined,
+    [rooms, userName],
+  );
 
   useEffect(() => {
     const channel = realtimeClient.channels.get("Lobby");
     channel.subscribe((message) => {
       if (message.name === "create") {
         const room = JSON.parse(message.data) as RoomEntity;
-        setRooms(current => [...current, room]);
+        setRooms((current) => [...current, room]);
       } else if (message.name === "update") {
         const room = JSON.parse(message.data) as RoomEntity;
-        setRooms(current => current.map(currentRoom => currentRoom.id === room.id ? room : currentRoom));
+        setRooms((current) =>
+          current.map((currentRoom) =>
+            currentRoom.id === room.id ? room : currentRoom,
+          ),
+        );
       } else if (message.name === "delete") {
         const room = JSON.parse(message.data) as RoomEntity;
-        setRooms(current => current.filter(currentRoom => currentRoom.id !== room.id));
+        setRooms((current) =>
+          current.filter((currentRoom) => currentRoom.id !== room.id),
+        );
       }
     });
 
@@ -53,7 +61,7 @@ const Lobby = () => {
         channel.unsubscribe();
         channel.detach(); // need to detach to release channel, unsubscribe doesn't cut it
       }
-    }
+    };
   }, [realtimeClient.channels]);
 
   useEffect(() => {
@@ -71,11 +79,11 @@ const Lobby = () => {
           channel.unsubscribe();
           channel.detach(); // need to detach to release channel, unsubscribe doesn't cut it
         }
-      }
+      };
     }
   }, [realtimeClient.channels, myRoomId]);
 
-  if (!userName) { 
+  if (!userName) {
     return null;
   }
 
@@ -83,7 +91,7 @@ const Lobby = () => {
 
   const createRoom = async () => {
     const resp = await fetch(`/api/rooms`, {
-      method: "POST"
+      method: "POST",
     });
     if (!resp.ok) {
       // TODO: display errors to user
@@ -99,13 +107,13 @@ const Lobby = () => {
       return;
     }
 
-    const { rooms } = await resp.json() as { rooms: RoomEntity[] };
+    const { rooms } = (await resp.json()) as { rooms: RoomEntity[] };
     setRooms(rooms);
-  }
+  };
 
   const joinRoom = async (id: string) => {
     const resp = await fetch(`/api/rooms/${id}`, {
-      method: "PUT"
+      method: "PUT",
     });
     if (!resp.ok) {
       // TODO: display errors to user
@@ -115,7 +123,7 @@ const Lobby = () => {
 
   const leaveRoom = async (id: string) => {
     const resp = await fetch(`/api/rooms/${id}`, {
-      method: "DELETE"
+      method: "DELETE",
     });
     if (!resp.ok) {
       // TODO: display errors to user
@@ -129,19 +137,17 @@ const Lobby = () => {
         <div>
           Welcome <b>{user?.nickname ?? user?.name}</b>
         </div>
-        <Link href="/api/auth/logout">
-          Log out
-        </Link>
+        <Link href="/api/auth/logout">Log out</Link>
       </User>
       {!myRoomId && <button onClick={createRoom}>New Game</button>}
       <h2>Games</h2>
       <ul>
         {/* TODO: clean up all the conditionals here */}
-        {rooms.map(room => (
+        {rooms.map((room) => (
           <li key={room.id}>
             <b>{room.host === userName ? "You" : room.host}</b> vs.
             {room.players.length === 2 ? (
-              <>{room.players.filter(player => player !== room.host)}</>
+              <>{room.players.filter((player) => player !== room.host)}</>
             ) : (
               <i> (awaiting opponent...)</i>
             )}
@@ -156,13 +162,18 @@ const Lobby = () => {
               </a>
             )}
             {room.players.length === 2 && room.host === userName && (
-              <button onClick={() => startGame(room.id)} style={{ marginLeft: 8 }}>Start Game</button>
+              <button
+                onClick={() => startGame(room.id)}
+                style={{ marginLeft: 8 }}
+              >
+                Start Game
+              </button>
             )}
           </li>
         ))}
       </ul>
     </div>
   );
-}
+};
 
 export default Lobby;

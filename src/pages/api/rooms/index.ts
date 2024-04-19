@@ -1,8 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { createClient } from '@supabase/supabase-js';
-import { getSession, withApiAuthRequired } from '@auth0/nextjs-auth0';
-import { RoomEntity } from '../../../types/models';
-import Ably from 'ably';
+import type { NextApiRequest, NextApiResponse } from "next";
+import { createClient } from "@supabase/supabase-js";
+import { getSession, withApiAuthRequired } from "@auth0/nextjs-auth0";
+import { RoomEntity } from "../../../types/models";
+import Ably from "ably";
 
 if (!process.env.SUPABASE_URL) {
   throw new Error("Missing required environment variable SUPABASE_URL");
@@ -24,7 +24,7 @@ const realtime = new Ably.Realtime({ key: process.env.ABLY_API_KEY });
 
 export default withApiAuthRequired(async function handler(
   request: NextApiRequest,
-  response: NextApiResponse
+  response: NextApiResponse,
 ) {
   try {
     const session = await getSession(request, response);
@@ -34,7 +34,7 @@ export default withApiAuthRequired(async function handler(
 
     if (request.method === "GET") {
       const { data = [] } = await supabase
-        .from('Rooms')
+        .from("Rooms")
         .select()
         .returns<RoomEntity[]>();
 
@@ -44,35 +44,37 @@ export default withApiAuthRequired(async function handler(
 
       // already in a room?
       const { data: currentRoomData, error: currentRoomError } = await supabase
-        .from('Rooms')
+        .from("Rooms")
         .select()
-        .filter('players', 'cs', `{${player}}`)
+        .filter("players", "cs", `{${player}}`)
         .returns<RoomEntity[]>();
 
       if (currentRoomError) {
-        return response.status(500).json(currentRoomError)
+        return response.status(500).json(currentRoomError);
       }
 
       if (!currentRoomData || currentRoomData.length > 0) {
-        return response.status(409).json({ message: "Already in a room", id: currentRoomData[0].id })
+        return response
+          .status(409)
+          .json({ message: "Already in a room", id: currentRoomData[0].id });
       }
 
       const room = {
         host: player,
         players: [player],
-      }
+      };
 
       // store room
-      const {
-        data,
-        error
-      } = await supabase.from('Rooms')
+      const { data, error } = await supabase
+        .from("Rooms")
         .insert(room)
         .select()
         .returns<RoomEntity[]>();
 
       if (error || data.length === 0) {
-        return response.status(409).json({ message: error?.message ?? "No data in result of insert" });
+        return response
+          .status(409)
+          .json({ message: error?.message ?? "No data in result of insert" });
       }
 
       const roomData = data[0];

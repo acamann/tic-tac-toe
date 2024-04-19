@@ -1,6 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { withApiAuthRequired } from '@auth0/nextjs-auth0';
-import { createClient } from '@supabase/supabase-js';
+import type { NextApiRequest, NextApiResponse } from "next";
+import { withApiAuthRequired } from "@auth0/nextjs-auth0";
+import { createClient } from "@supabase/supabase-js";
 
 if (!process.env.SUPABASE_URL) {
   throw new Error("Missing required environment variable SUPABASE_URL");
@@ -16,14 +16,14 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default withApiAuthRequired(async function handler(
   request: NextApiRequest,
-  response: NextApiResponse
+  response: NextApiResponse,
 ) {
   try {
     if (request.method === "GET") {
       const { data = [] } = await supabase
-        .from('leaderboard')
+        .from("leaderboard")
         .select("winner, wins");
-        
+
       return response.status(200).json(data);
     } else {
       return response.status(405);

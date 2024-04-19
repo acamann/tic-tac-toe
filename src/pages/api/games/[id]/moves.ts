@@ -1,9 +1,14 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { getSession, withApiAuthRequired } from '@auth0/nextjs-auth0';
-import { createClient } from '@supabase/supabase-js';
-import { GameEntity, Move } from './../../../../types/models';
-import Ably from 'ably';
-import { getNewBoard, getWinner, isDraw, isValidMove } from '../../../../utils/BoardUtils';
+import type { NextApiRequest, NextApiResponse } from "next";
+import { getSession, withApiAuthRequired } from "@auth0/nextjs-auth0";
+import { createClient } from "@supabase/supabase-js";
+import { GameEntity, Move } from "./../../../../types/models";
+import Ably from "ably";
+import {
+  getNewBoard,
+  getWinner,
+  isDraw,
+  isValidMove,
+} from "../../../../utils/BoardUtils";
 
 if (!process.env.SUPABASE_URL) {
   throw new Error("Missing required environment variable SUPABASE_URL");
@@ -32,7 +37,7 @@ interface MovesNextApiRequest extends NextApiRequest {
 
 export default withApiAuthRequired(async function handler(
   request: MovesNextApiRequest,
-  response: NextApiResponse
+  response: NextApiResponse,
 ) {
   try {
     const { id: game_id } = request.query;
@@ -41,13 +46,10 @@ export default withApiAuthRequired(async function handler(
     }
 
     if (request.method === "PUT") {
-
-      const {
-        data: currentGameData,
-        error: currentGameError
-      } = await supabase.from('Games')
+      const { data: currentGameData, error: currentGameError } = await supabase
+        .from("Games")
         .select()
-        .eq('game_id', game_id)
+        .eq("game_id", game_id)
         .returns<[GameEntity] | []>();
 
       if (currentGameError) {
@@ -67,14 +69,20 @@ export default withApiAuthRequired(async function handler(
       const playerName = session.user.nickname ?? session.user.name;
 
       if (!(playerName === game.player0 || playerName === game.player1)) {
-        return response.status(403).json({ message: "Authenticated user is not a participant of this game" })
+        return response
+          .status(403)
+          .json({
+            message: "Authenticated user is not a participant of this game",
+          });
       }
 
       const playerIndex = playerName === game.player0 ? 0 : 1;
       const playerIndexAsBool = playerIndex === 1 ? true : false; // still kind of gross
 
       if (game.is_draw || game.winner) {
-        return response.status(409).json({ message: `The game is already over.` })
+        return response
+          .status(409)
+          .json({ message: `The game is already over.` });
       }
       if (game.current_turn !== playerIndexAsBool) {
         return response.status(409).json({ message: "It's not your turn" });
@@ -82,8 +90,8 @@ export default withApiAuthRequired(async function handler(
 
       const move: Move = {
         ...request.body,
-        player: playerIndex
-      }
+        player: playerIndex,
+      };
 
       if (!isValidMove(game.board, move)) {
         return response.status(409).json({ message: "Invalid move" });
@@ -96,14 +104,15 @@ export default withApiAuthRequired(async function handler(
         ...game,
         board: newBoard,
         current_turn: winner === null ? !game.current_turn : null,
-        winner: winner === 0 ? game.player0 : winner === 1 ? game.player1 : null,
-        is_draw: isDraw(newBoard)
-      }
+        winner:
+          winner === 0 ? game.player0 : winner === 1 ? game.player1 : null,
+        is_draw: isDraw(newBoard),
+      };
 
       const { error: updateError } = await supabase
-        .from('Games')
+        .from("Games")
         .update(updatedGameData)
-        .eq('game_id', game_id);
+        .eq("game_id", game_id);
 
       if (updateError) {
         return response.status(500).json({ message: updateError.message });

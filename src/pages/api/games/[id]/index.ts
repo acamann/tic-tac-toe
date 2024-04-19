@@ -1,7 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { withApiAuthRequired } from '@auth0/nextjs-auth0';
-import { createClient } from '@supabase/supabase-js';
-import { GameEntity } from './../../../../types/models';
+import type { NextApiRequest, NextApiResponse } from "next";
+import { withApiAuthRequired } from "@auth0/nextjs-auth0";
+import { createClient } from "@supabase/supabase-js";
+import { GameEntity } from "./../../../../types/models";
 
 if (!process.env.SUPABASE_URL) {
   throw new Error("Missing required environment variable SUPABASE_URL");
@@ -17,18 +17,16 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default withApiAuthRequired(async function handler(
   request: NextApiRequest,
-  response: NextApiResponse
+  response: NextApiResponse,
 ) {
   try {
     const { id } = request.query;
 
     if (request.method === "GET") {
-      const {
-        data,
-        error
-      } = await supabase.from('Games')
+      const { data, error } = await supabase
+        .from("Games")
         .select()
-        .eq('game_id', id)
+        .eq("game_id", id)
         .returns<[GameEntity] | []>();
 
       if (error) {
