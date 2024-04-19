@@ -1,9 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
-import "./Lobby.css";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { RoomEntity } from '../types/models';
 import { useAblyRealtime } from '../context/AblyRealtimeContext';
 import { useGameContext } from '../context/GameContext';
+import styled from 'styled-components';
+
+const User = styled.div`
+  margin: 24px 0;
+`
+
+const Link = styled.a`
+  cursor: pointer;
+`
 
 const Lobby = () => {
   const [rooms, setRooms] = useState<RoomEntity[]>([]);
@@ -116,15 +124,15 @@ const Lobby = () => {
   };
 
   return (
-    <div className="setup">
-      <div className="user">
+    <div>
+      <User>
         <div>
           Welcome <b>{user?.nickname ?? user?.name}</b>
         </div>
-        <a href="/api/auth/logout">
+        <Link href="/api/auth/logout">
           Log out
-        </a>
-      </div>
+        </Link>
+      </User>
       {!myRoomId && <button onClick={createRoom}>New Game</button>}
       <h2>Games</h2>
       <ul>

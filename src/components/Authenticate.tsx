@@ -1,12 +1,18 @@
-import './Authenticate.css';
+import styled from 'styled-components';
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
 
 const Authenticate = () => {
   return (
-    <div className="authenticate">
+    <Container>
       <a href="/api/auth/login">
         Login
       </a>
-    </div>
+    </Container>
   );
 }
 

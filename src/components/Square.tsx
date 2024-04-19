@@ -1,5 +1,5 @@
+import styled from "styled-components";
 import { SquareValue } from "../types/models";
-import './Square.css'
 
 type Props = {
   value: SquareValue;
@@ -7,19 +7,35 @@ type Props = {
   onClick: () => void;
 }
 
+const SquareButton = styled.button`
+  line-height: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: unset;
+  border-radius: unset;
+  padding: unset;
+  background-color: unset;
+
+  &:disabled {
+    cursor: default;
+    color: unset;
+  }
+`
+
 const Square = ({
   value,
   disabled,
   onClick
 }: Props) => {
   return (
-    <button
+    <SquareButton
       className="square"
       onClick={onClick}
       disabled={disabled || value !== null}
     >
       {value === 0 ? "O" : value === 1 ? "X" : undefined}
-    </button>
+    </SquareButton>
   )
 }
 
