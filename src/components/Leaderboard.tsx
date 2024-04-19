@@ -1,7 +1,32 @@
 import { useEffect, useState } from "react";
-import "./Leaderboard.css";
+import styled from "styled-components";
 
 type Rank = { winner: string, wins: number };
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: lightgray;
+  border-radius: 16px;
+  padding: 16px;
+`;
+
+const Header = styled.h2`
+  margin: 0;
+  font-size: 1.1em;
+`
+
+const Leaders = styled.ol`
+  li div {
+    display: flex;
+
+    :first-child {
+      width: 250px;
+      text-align: left;
+    }
+  }
+`
 
 const Leaderboard = () => {
   const [leaders, setLeaders] = useState<Rank[]>();
@@ -18,9 +43,9 @@ const Leaderboard = () => {
   }, []);
 
   return (
-    <div className="leaderboard">
-      <h2>Leaderboard</h2>
-      <ol>
+    <Container>
+      <Header>Leaderboard</Header>
+      <Leaders>
         {leaders?.map(rank => (
           <li key={rank.winner}>
             <div>
@@ -29,8 +54,8 @@ const Leaderboard = () => {
             </div>
           </li>
         ))}
-      </ol>
-    </div>
+      </Leaders>
+    </Container>
   );
 }
 

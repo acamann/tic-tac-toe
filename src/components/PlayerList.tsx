@@ -1,4 +1,4 @@
-import "./PlayerList.css";
+import styled, { css } from "styled-components";
 
 type Props = {
   o: string;
@@ -6,20 +6,37 @@ type Props = {
   current?: "o" | "x";
 }
 
+const Players = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin: 24px;
+  gap: 8px;
+  align-items: center;
+`;
+
+const Player = styled.div<{ $isCurrentTurn: boolean; }>`
+  padding: 8px;
+  border-radius: 8px;
+  ${props => props.$isCurrentTurn && css`
+    font-weight: bold;
+    background-color: lightsteelblue;
+  `}
+`;
+
 const PlayerList = ({
   o,
   x,
   current
 }: Props) => {
   return (
-    <div className="players">
-      <div className={current === "o" ? "current" : undefined}>
+    <Players>
+      <Player $isCurrentTurn={current === "o"}>
         O = {o}
-      </div>
-      <div className={current === "x" ? "current" : undefined}>
+      </Player>
+      <Player $isCurrentTurn={current === "x"}>
         X = {x}
-      </div>
-    </div>
+      </Player>
+    </Players>
   );
 }
 

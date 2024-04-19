@@ -1,4 +1,3 @@
-import './App.css'
 import { GameContextProvider, useGameContext } from './context/GameContext'
 import Authenticate from './components/Authenticate'
 import Game from './components/Game'
@@ -31,7 +30,6 @@ const App = () => {
 }
 
 const AppWrapper = () => {
-
   return (
     <AblyRealtimeProvider>
       <UserProvider>
