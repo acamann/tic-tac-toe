@@ -1,7 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { createClient } from '@supabase/supabase-js';
-import { getSession, withApiAuthRequired } from '@auth0/nextjs-auth0';
-import { RoomEntity } from './../../../../types/models';
+import type { NextApiRequest, NextApiResponse } from "next";
+import { createClient } from "@supabase/supabase-js";
+import { getSession, withApiAuthRequired } from "@auth0/nextjs-auth0";
+import { RoomEntity } from "./../../../../types/models";
 import Ably from "ably";
 
 const ROOM_MAX = 2;
@@ -26,7 +26,7 @@ const realtime = new Ably.Realtime({ key: process.env.ABLY_API_KEY });
 
 export default withApiAuthRequired(async function handler(
   request: NextApiRequest,
-  response: NextApiResponse
+  response: NextApiResponse,
 ) {
   try {
     const { id } = request.query;
@@ -38,13 +38,15 @@ export default withApiAuthRequired(async function handler(
 
     if (request.method === "GET") {
       const { data, error } = await supabase
-        .from('Rooms')
+        .from("Rooms")
         .select()
         .eq("id", id)
         .returns<RoomEntity[]>();
 
       if (!data || data.length === 0) {
-        return response.status(404).json({ message: error?.message ?? "Room not found" });
+        return response
+          .status(404)
+          .json({ message: error?.message ?? "Room not found" });
       }
 
       const room = data[0];
@@ -55,27 +57,31 @@ export default withApiAuthRequired(async function handler(
       const player: string = session.user.nickname ?? session.user.name;
 
       const { data: currentRoomData, error: currentRoomError } = await supabase
-        .from('Rooms')
+        .from("Rooms")
         .select()
-        .filter('players', 'cs', `{${player}}`)
+        .filter("players", "cs", `{${player}}`)
         .returns<RoomEntity[]>();
 
       if (currentRoomError) {
-        return response.status(500).json(currentRoomError)
+        return response.status(500).json(currentRoomError);
       }
 
       if (!currentRoomData || currentRoomData.length > 0) {
-        return response.status(409).json({ message: "Already in a room", id: currentRoomData[0].id })
+        return response
+          .status(409)
+          .json({ message: "Already in a room", id: currentRoomData[0].id });
       }
 
       const { data, error: findRoomError } = await supabase
-        .from('Rooms')
+        .from("Rooms")
         .select()
         .eq("id", id)
         .returns<RoomEntity[]>();
 
       if (!data || data.length === 0) {
-        return response.status(404).json({ message: findRoomError?.message ?? "Room not found" });
+        return response
+          .status(404)
+          .json({ message: findRoomError?.message ?? "Room not found" });
       }
 
       const room = data[0];
@@ -93,14 +99,12 @@ export default withApiAuthRequired(async function handler(
       room.players = [...room.players, player];
       room.last_touched = new Date();
 
-      const { error } = await supabase.from('Rooms')
-        .update(room)
-        .eq("id", id);
+      const { error } = await supabase.from("Rooms").update(room).eq("id", id);
 
       if (error) {
         return response.status(409).json({ message: error.message });
       }
-      
+
       // pub update to realtime lobby channel
       const channel = realtime.channels.get("Lobby");
       channel.publish("update", JSON.stringify(room));
@@ -111,13 +115,15 @@ export default withApiAuthRequired(async function handler(
       const player: string = session.user.nickname ?? session.user.name;
 
       const { data, error: findRoomError } = await supabase
-        .from('Rooms')
+        .from("Rooms")
         .select()
         .eq("id", id)
         .returns<RoomEntity[]>();
 
       if (!data || data.length === 0) {
-        return response.status(404).json({ message: findRoomError?.message ?? "Room not found" });
+        return response
+          .status(404)
+          .json({ message: findRoomError?.message ?? "Room not found" });
       }
 
       const room = data[0];
@@ -130,7 +136,8 @@ export default withApiAuthRequired(async function handler(
       if (room.host === player) {
         // if host leaves, room is gone
 
-        const { error: deleteError } = await supabase.from('Rooms')
+        const { error: deleteError } = await supabase
+          .from("Rooms")
           .delete()
           .eq("id", id);
 
@@ -147,12 +154,10 @@ export default withApiAuthRequired(async function handler(
       }
 
       // remove self from room
-      room.players = room.players.filter(p => p !== player);
+      room.players = room.players.filter((p) => p !== player);
       room.last_touched = new Date();
 
-      const { error } = await supabase.from('Rooms')
-        .update(room)
-        .eq("id", id);
+      const { error } = await supabase.from("Rooms").update(room).eq("id", id);
 
       // pub update to realtime lobby channel
       const channel = realtime.channels.get("Lobby");

@@ -5,7 +5,7 @@ type Props = {
   value: SquareValue;
   disabled: boolean;
   onClick: () => void;
-}
+};
 
 const SquareButton = styled.button`
   line-height: normal;
@@ -21,13 +21,9 @@ const SquareButton = styled.button`
     cursor: default;
     color: unset;
   }
-`
+`;
 
-const Square = ({
-  value,
-  disabled,
-  onClick
-}: Props) => {
+const Square = ({ value, disabled, onClick }: Props) => {
   return (
     <SquareButton
       className="square"
@@ -36,7 +32,7 @@ const Square = ({
     >
       {value === 0 ? "O" : value === 1 ? "X" : undefined}
     </SquareButton>
-  )
-}
+  );
+};
 
-export default Square
+export default Square;

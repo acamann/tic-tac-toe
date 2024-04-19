@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 const Container = styled.div`
   display: flex;
@@ -9,11 +9,9 @@ const Container = styled.div`
 const Authenticate = () => {
   return (
     <Container>
-      <a href="/api/auth/login">
-        Login
-      </a>
+      <a href="/api/auth/login">Login</a>
     </Container>
   );
-}
+};
 
 export default Authenticate;
