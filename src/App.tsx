@@ -5,6 +5,8 @@ import AblyRealtimeProvider from "./context/AblyRealtimeContext";
 import { useMemo } from "react";
 import { UserProvider, useUser } from "@auth0/nextjs-auth0/client";
 import Lobby from "./components/Lobby";
+import { Provider } from "react-redux";
+import { store } from "./store";
 
 const App = () => {
   const { isLoading: isAuthLoading, error: authError, user } = useUser();
@@ -34,13 +36,15 @@ const App = () => {
 
 const AppWrapper = () => {
   return (
-    <AblyRealtimeProvider>
-      <UserProvider>
-        <GameContextProvider>
-          <App />
-        </GameContextProvider>
-      </UserProvider>
-    </AblyRealtimeProvider>
+    <Provider store={store}>
+      <AblyRealtimeProvider>
+        <UserProvider>
+          <GameContextProvider>
+            <App />
+          </GameContextProvider>
+        </UserProvider>
+      </AblyRealtimeProvider>
+    </Provider>
   );
 };
 

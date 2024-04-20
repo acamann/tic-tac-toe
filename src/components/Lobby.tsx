@@ -1,9 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { RoomEntity } from "../types/models";
 import { useAblyRealtime } from "../context/AblyRealtimeContext";
 import { useGameContext } from "../context/GameContext";
 import styled from "styled-components";
+import {
+  useCreateRoomMutation,
+  useGetRoomsQuery,
+  useJoinRoomMutation,
+  useLeaveRoomMutation,
+} from "../services/rooms";
 
 const User = styled.div`
   margin: 24px 0;
@@ -14,19 +19,19 @@ const Link = styled.a`
 `;
 
 const Lobby = () => {
-  const [rooms, setRooms] = useState<RoomEntity[]>([]);
+  const { data: rooms = [], error, isLoading } = useGetRoomsQuery();
+  const [createRoom, createRoomResult] = useCreateRoomMutation();
+  const [joinRoom, joinRoomResult] = useJoinRoomMutation();
+  const [leaveRoom, leaveRoomResult] = useLeaveRoomMutation();
 
   const { user } = useUser();
   const userName = useMemo(() => user?.nickname ?? user?.name, [user]);
-
-  useEffect(() => {
-    getRooms();
-  }, []);
 
   const { client: realtimeClient } = useAblyRealtime();
 
   const { startGame, joinGame } = useGameContext();
 
+  // TODO use RTK for "my room" state
   const myRoomId = useMemo(
     () =>
       userName
@@ -34,35 +39,6 @@ const Lobby = () => {
         : undefined,
     [rooms, userName],
   );
-
-  useEffect(() => {
-    const channel = realtimeClient.channels.get("Lobby");
-    channel.subscribe((message) => {
-      if (message.name === "create") {
-        const room = JSON.parse(message.data) as RoomEntity;
-        setRooms((current) => [...current, room]);
-      } else if (message.name === "update") {
-        const room = JSON.parse(message.data) as RoomEntity;
-        setRooms((current) =>
-          current.map((currentRoom) =>
-            currentRoom.id === room.id ? room : currentRoom,
-          ),
-        );
-      } else if (message.name === "delete") {
-        const room = JSON.parse(message.data) as RoomEntity;
-        setRooms((current) =>
-          current.filter((currentRoom) => currentRoom.id !== room.id),
-        );
-      }
-    });
-
-    return () => {
-      if (channel) {
-        channel.unsubscribe();
-        channel.detach(); // need to detach to release channel, unsubscribe doesn't cut it
-      }
-    };
-  }, [realtimeClient.channels]);
 
   useEffect(() => {
     if (myRoomId) {
@@ -87,50 +63,6 @@ const Lobby = () => {
     return null;
   }
 
-  // TODO: RTK Query all of these
-
-  const createRoom = async () => {
-    const resp = await fetch(`/api/rooms`, {
-      method: "POST",
-    });
-    if (!resp.ok) {
-      // TODO: display errors to user
-      console.error(resp);
-    }
-  };
-
-  const getRooms = async () => {
-    const resp = await fetch(`/api/rooms`);
-    if (!resp.ok) {
-      // TODO: display errors to user
-      console.error(resp);
-      return;
-    }
-
-    const { rooms } = (await resp.json()) as { rooms: RoomEntity[] };
-    setRooms(rooms);
-  };
-
-  const joinRoom = async (id: string) => {
-    const resp = await fetch(`/api/rooms/${id}`, {
-      method: "PUT",
-    });
-    if (!resp.ok) {
-      // TODO: display errors to user
-      console.error(resp);
-    }
-  };
-
-  const leaveRoom = async (id: string) => {
-    const resp = await fetch(`/api/rooms/${id}`, {
-      method: "DELETE",
-    });
-    if (!resp.ok) {
-      // TODO: display errors to user
-      console.error(resp);
-    }
-  };
-
   return (
     <div>
       <User>
@@ -139,7 +71,7 @@ const Lobby = () => {
         </div>
         <Link href="/api/auth/logout">Log out</Link>
       </User>
-      {!myRoomId && <button onClick={createRoom}>New Game</button>}
+      {!myRoomId && <button onClick={() => createRoom()}>New Game</button>}
       <h2>Games</h2>
       <ul>
         {/* TODO: clean up all the conditionals here */}
