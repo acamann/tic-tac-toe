@@ -19,10 +19,10 @@ const Link = styled.a`
 `;
 
 const Lobby = () => {
-  const { data: rooms = [], error, isLoading } = useGetRoomsQuery();
-  const [createRoom, createRoomResult] = useCreateRoomMutation();
-  const [joinRoom, joinRoomResult] = useJoinRoomMutation();
-  const [leaveRoom, leaveRoomResult] = useLeaveRoomMutation();
+  const { data: rooms = [], isLoading } = useGetRoomsQuery();
+  const [createRoom] = useCreateRoomMutation();
+  const [joinRoom] = useJoinRoomMutation();
+  const [leaveRoom] = useLeaveRoomMutation();
 
   const { user } = useUser();
   const userName = useMemo(() => user?.nickname ?? user?.name, [user]);
@@ -73,6 +73,7 @@ const Lobby = () => {
       </User>
       {!myRoomId && <button onClick={() => createRoom()}>New Game</button>}
       <h2>Games</h2>
+      {isLoading && <div>"Loading..."</div>}
       <ul>
         {/* TODO: clean up all the conditionals here */}
         {rooms.map((room) => (
