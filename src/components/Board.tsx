@@ -2,6 +2,8 @@ import { GameBoard } from "../types/models";
 import Square from "./Square";
 import { useGameContext } from "../context/GameContext";
 import styled from "styled-components";
+import { useMemo } from "react";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 type Props = {
   board: GameBoard;
@@ -43,6 +45,18 @@ const Row = styled.div`
 
 const Board = ({ board, handleClickSquare }: Props) => {
   const { game } = useGameContext();
+
+  const { user } = useUser();
+
+  const isCurrentTurn = useMemo(() => {
+    if (!game) return false;
+    if (game.current_turn === 0) {
+      return game.player0 === user?.nickname ?? user?.name;
+    } else if (game.current_turn === 1) {
+      return game.player1 === user?.nickname ?? user?.name;
+    }
+  }, [game, user]);
+
   return (
     game && (
       <Container>
@@ -53,9 +67,7 @@ const Board = ({ board, handleClickSquare }: Props) => {
                 key={`${rowIndex}-${colIndex}`}
                 value={squareValue}
                 disabled={
-                  game.current_turn !== game.self ||
-                  game.is_draw ||
-                  game.winner !== null
+                  !isCurrentTurn || game.is_draw || game.winner !== null
                 }
                 onClick={(): void =>
                   handleClickSquare(

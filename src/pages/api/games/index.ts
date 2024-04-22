@@ -77,17 +77,16 @@ export default withApiAuthRequired(async function handler(
       }
 
       if (room.players.length !== 2) {
-        return response
-          .status(409)
-          .json({
-            message: "Game is not ready to start, 2 players are required",
-          });
+        return response.status(409).json({
+          message: "Game is not ready to start, 2 players are required",
+        });
       }
 
       const player0 = room.host;
       const player1 = room.players.filter((player) => player !== player0)[0];
 
       // TODO: is there already a game in progress in this room?
+      // - should conflict, or mark other game as abandoned?
 
       // create a new game (associated with the room)
       // store game

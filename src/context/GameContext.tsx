@@ -1,11 +1,12 @@
-import { createContext, useContext, useState } from "react";
-import { GameEntity } from "../types/models";
-import { useAblyRealtime } from "./AblyRealtimeContext";
+import { createContext, useContext } from "react";
+import { Game } from "../types/models";
+import {
+  useLazyGetGameQuery,
+  useStartGameMutation,
+  useTakeTurnMutation,
+} from "../services/games";
 
-type Game = Omit<GameEntity, "current_turn"> & {
-  current_turn: 0 | 1 | null;
-  self: 0 | 1; // client-side only
-};
+// TODO: remove this context layer entirely
 
 type GameContextType = {
   game: Game | undefined;
@@ -19,108 +20,47 @@ type GameContextType = {
 const GameContext = createContext<GameContextType>({} as GameContextType);
 
 const GameContextProvider = ({ children }: React.PropsWithChildren) => {
-  const [game, setGame] = useState<Game | undefined>(undefined);
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [
+    getGameTrigger,
+    {
+      currentData: game,
+      isLoading,
+      //error: getGameError
+    },
+  ] = useLazyGetGameQuery();
+  const [
+    startGameTrigger,
+    //{ error: startGameError }
+  ] = useStartGameMutation();
+  const [
+    takeTurn,
+    //{ error: takeTurnError }
+  ] = useTakeTurnMutation();
 
-  const { client: realtimeClient } = useAblyRealtime();
+  // TODO: display errors
+  const error = "";
 
   const handleMove = async (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => {
-    setError("");
-    try {
-      const resp = await fetch(`/api/games/${game?.game_id}/moves`, {
-        method: "PUT",
-        body: JSON.stringify({ rowIndex, colIndex }),
-        headers: new Headers({
-          // figure out why needed
-          "Content-Type": "application/json",
-        }),
-      });
-      if (!resp.ok) {
-        const body = (await resp.json()) as { message?: string };
-        throw new Error(body.message);
-      }
-    } catch (e) {
-      setError((e as { message: string }).message ?? "Unknown Problem");
+    if (!game) {
+      console.error("Handle Move on undefined game");
+      return;
     }
-  };
-
-  const subscribeToGameChanges = (game_id: string) => {
-    // TODO: figure out how/when to clean this up
-
-    // const unsubscribe = () => {
-    //   if (channel) {
-    //     channel.unsubscribe();
-    //     channel.detach(); // need to detach to release channel, unsubscribe doesn't cut it
-    //   }
-    // }
-
-    const channel = realtimeClient.channels.get(game_id);
-    channel.subscribe((message) => {
-      if (message.name === "game") {
-        const game = JSON.parse(message.data) as GameEntity;
-
-        setGame(
-          (current) =>
-            current && {
-              ...current,
-              ...game,
-              current_turn:
-                game.current_turn === true
-                  ? 1
-                  : game.current_turn === false
-                    ? 0
-                    : null,
-            },
-        );
-      }
+    takeTurn({
+      gameId: game?.game_id,
+      body: {
+        rowIndex,
+        colIndex,
+      },
     });
   };
 
   const joinGame = async (gameId: string) => {
-    setIsLoading(true);
-    const resp = await fetch(`/api/games/${gameId}`);
-    setIsLoading(false);
-
-    if (resp.status !== 200) {
-      // TODO: better error stuff
-      setError("Could not join");
-      console.error("Could not join", resp);
-    }
-
-    const game = (await resp.json()) as GameEntity;
-
-    setGame({
-      ...game,
-      current_turn:
-        game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
-      self: 1,
-    });
-
-    subscribeToGameChanges(game.game_id);
+    getGameTrigger(gameId);
   };
 
   const startGame = async (roomId: string) => {
-    const resp = await fetch(`/api/games`, {
-      method: "PUT",
-      body: JSON.stringify({
-        room_id: roomId,
-      }),
-    });
-    if (!resp.ok) {
-      console.error(resp);
-      return;
-    }
-
-    const game = (await resp.json()) as GameEntity;
-    setGame({
-      ...game,
-      current_turn:
-        game.current_turn === true ? 1 : game.current_turn === false ? 0 : null,
-      self: 0, // ????
-    });
-
-    subscribeToGameChanges(game.game_id);
+    const newGame = await startGameTrigger({ room_id: roomId }).unwrap();
+    getGameTrigger(newGame.game_id);
   };
 
   return (
