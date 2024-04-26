@@ -88,8 +88,6 @@ export default withApiAuthRequired(async function handler(
         player: playerIndex,
       };
 
-      console.log(move);
-
       if (!isValidMove(game.board, move)) {
         return response.status(409).json({ message: "Invalid move" });
       }
