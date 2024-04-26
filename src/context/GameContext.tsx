@@ -26,8 +26,6 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
   const [startGameTrigger] = useStartGameMutation();
   const [takeTurn] = useTakeTurnMutation();
 
-  const [endGame] = useEndGameMutation();
-
   // TODO: display errors
   const error = "";
 
