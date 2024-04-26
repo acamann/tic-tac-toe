@@ -1,7 +1,6 @@
 import { GameContextProvider, useGameContext } from "./context/GameContext";
 import Authenticate from "./components/Authenticate";
 import Game from "./components/Game";
-import AblyRealtimeProvider from "./context/AblyRealtimeContext";
 import { useMemo } from "react";
 import { UserProvider, useUser } from "@auth0/nextjs-auth0/client";
 import Lobby from "./components/Lobby";
@@ -37,13 +36,11 @@ const App = () => {
 const AppWrapper = () => {
   return (
     <Provider store={store}>
-      <AblyRealtimeProvider>
-        <UserProvider>
-          <GameContextProvider>
-            <App />
-          </GameContextProvider>
-        </UserProvider>
-      </AblyRealtimeProvider>
+      <UserProvider>
+        <GameContextProvider>
+          <App />
+        </GameContextProvider>
+      </UserProvider>
     </Provider>
   );
 };

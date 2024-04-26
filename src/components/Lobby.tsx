@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { useAblyRealtime } from "../context/AblyRealtimeContext";
 import { useGameContext } from "../context/GameContext";
 import styled from "styled-components";
 import {
@@ -9,6 +8,7 @@ import {
   useJoinRoomMutation,
   useLeaveRoomMutation,
 } from "../services/rooms";
+import Ably from "ably";
 
 const User = styled.div`
   margin: 24px 0;
@@ -27,8 +27,6 @@ const Lobby = () => {
   const { user } = useUser();
   const userName = useMemo(() => user?.nickname ?? user?.name, [user]);
 
-  const { client: realtimeClient } = useAblyRealtime();
-
   const { startGame, joinGame } = useGameContext();
 
   // TODO use RTK for "my room" state
@@ -40,8 +38,12 @@ const Lobby = () => {
     [rooms, userName],
   );
 
+  // TODO: still need to move this last bit to RTK Query
   useEffect(() => {
     if (myRoomId) {
+      const realtimeClient = new Ably.Realtime({
+        authUrl: "/api/realtime/token",
+      });
       const channel = realtimeClient.channels.get(myRoomId);
       channel.subscribe((message) => {
         if (message.name === "start") {
@@ -54,10 +56,11 @@ const Lobby = () => {
         if (channel) {
           channel.unsubscribe();
           channel.detach(); // need to detach to release channel, unsubscribe doesn't cut it
+          realtimeClient.close();
         }
       };
     }
-  }, [realtimeClient.channels, myRoomId]);
+  }, [myRoomId]);
 
   if (!userName) {
     return null;

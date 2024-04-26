@@ -11,7 +11,7 @@ import {
 type GameContextType = {
   game: Game | undefined;
   startGame: (roomId: string) => Promise<void>;
-  joinGame: (joinCode: string) => Promise<void>;
+  joinGame: (joinCode: string) => void;
   handleMove: (rowIndex: 0 | 1 | 2, colIndex: 0 | 1 | 2) => void;
   error: string;
   isLoading: boolean;
@@ -20,22 +20,13 @@ type GameContextType = {
 const GameContext = createContext<GameContextType>({} as GameContextType);
 
 const GameContextProvider = ({ children }: React.PropsWithChildren) => {
-  const [
-    getGameTrigger,
-    {
-      currentData: game,
-      isLoading,
-      //error: getGameError
-    },
-  ] = useLazyGetGameQuery();
-  const [
-    startGameTrigger,
-    //{ error: startGameError }
-  ] = useStartGameMutation();
-  const [
-    takeTurn,
-    //{ error: takeTurnError }
-  ] = useTakeTurnMutation();
+  const [getGameQuery, { currentData: game, isLoading }] = useLazyGetGameQuery(
+    {},
+  );
+  const [startGameTrigger] = useStartGameMutation();
+  const [takeTurn] = useTakeTurnMutation();
+
+  const [endGame] = useEndGameMutation();
 
   // TODO: display errors
   const error = "";
@@ -54,13 +45,11 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
     });
   };
 
-  const joinGame = async (gameId: string) => {
-    getGameTrigger(gameId);
-  };
+  const joinGame = (gameId: string) => getGameQuery(gameId);
 
   const startGame = async (roomId: string) => {
     const newGame = await startGameTrigger({ room_id: roomId }).unwrap();
-    getGameTrigger(newGame.game_id);
+    await getGameQuery(newGame.game_id);
   };
 
   return (
