@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession, withApiAuthRequired } from "@auth0/nextjs-auth0";
 import { createClient } from "@supabase/supabase-js";
-import { GameEntity, Move } from "./../../../../types/models";
+import { GameEntity, Move, MoveRequest } from "./../../../../types/models";
 import Ably from "ably";
 import {
   getNewBoard,
@@ -29,10 +29,7 @@ if (!process.env.ABLY_API_KEY) {
 const realtime = new Ably.Realtime({ key: process.env.ABLY_API_KEY });
 
 interface MovesNextApiRequest extends NextApiRequest {
-  body: {
-    rowIndex: 0 | 1 | 2;
-    colIndex: 0 | 1 | 2;
-  };
+  body: MoveRequest;
 }
 
 export default withApiAuthRequired(async function handler(
@@ -69,11 +66,9 @@ export default withApiAuthRequired(async function handler(
       const playerName = session.user.nickname ?? session.user.name;
 
       if (!(playerName === game.player0 || playerName === game.player1)) {
-        return response
-          .status(403)
-          .json({
-            message: "Authenticated user is not a participant of this game",
-          });
+        return response.status(403).json({
+          message: "Authenticated user is not a participant of this game",
+        });
       }
 
       const playerIndex = playerName === game.player0 ? 0 : 1;
