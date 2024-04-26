@@ -3,6 +3,12 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { Game, GameEntity, MoveRequest } from "../types/models";
 import Ably from "ably";
 
+const transformGameEntity = (entity: GameEntity): Game => ({
+  ...entity,
+  current_turn:
+    entity.current_turn === true ? 1 : entity.current_turn === false ? 0 : null,
+});
+
 // Define a service using a base URL and expected endpoints
 export const gamesApi = createApi({
   reducerPath: "gamesApi",
@@ -10,31 +16,12 @@ export const gamesApi = createApi({
   endpoints: (builder) => ({
     getGames: builder.query<Game[], void>({
       query: () => "",
-      transformResponse: (response: { games: GameEntity[] }) => {
-        return response.games.map((entity) => ({
-          ...entity,
-          current_turn:
-            entity.current_turn === true
-              ? 1
-              : entity.current_turn === false
-                ? 0
-                : null,
-        }));
-      },
+      transformResponse: (response: { games: GameEntity[] }) =>
+        response.games.map(transformGameEntity),
     }),
     getGame: builder.query<Game, string>({
       query: (id) => `/${id}`,
-      transformResponse: (entity: GameEntity) => {
-        return {
-          ...entity,
-          current_turn:
-            entity.current_turn === true
-              ? 1
-              : entity.current_turn === false
-                ? 0
-                : null,
-        };
-      },
+      transformResponse: (entity: GameEntity) => transformGameEntity(entity),
       async onCacheEntryAdded(
         gameId,
         { updateCachedData, cacheDataLoaded, cacheEntryRemoved },
@@ -53,17 +40,11 @@ export const gamesApi = createApi({
           // update our room data accordingly
           channel.subscribe((message) => {
             if (message.name === "game") {
-              const game = JSON.parse(message.data) as GameEntity;
+              const game = transformGameEntity(
+                JSON.parse(message.data) as GameEntity,
+              );
               updateCachedData((cache) => {
-                Object.assign(cache, {
-                  ...game,
-                  current_turn:
-                    game.current_turn === true
-                      ? 1
-                      : game.current_turn === false
-                        ? 0
-                        : null,
-                });
+                Object.assign(cache, game);
               });
             } else {
               console.error(["Unknown message", message]);
