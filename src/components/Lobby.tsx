@@ -29,7 +29,7 @@ const Lobby = () => {
 
   const { startGame, joinGame } = useGameContext();
 
-  // TODO use RTK for "my room" state
+  // TODO still need to transition to RTK for "my room" state
   const myRoomId = useMemo(
     () =>
       userName
@@ -38,7 +38,6 @@ const Lobby = () => {
     [rooms, userName],
   );
 
-  // TODO: still need to move this last bit to RTK Query
   useEffect(() => {
     if (myRoomId) {
       const realtimeClient = new Ably.Realtime({
