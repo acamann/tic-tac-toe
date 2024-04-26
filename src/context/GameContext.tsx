@@ -20,9 +20,8 @@ type GameContextType = {
 const GameContext = createContext<GameContextType>({} as GameContextType);
 
 const GameContextProvider = ({ children }: React.PropsWithChildren) => {
-  const [getGameQuery, { currentData: game, isLoading }] = useLazyGetGameQuery(
-    {},
-  );
+  const [getGameQuery, { currentData: game, isLoading }] =
+    useLazyGetGameQuery();
   const [startGameTrigger] = useStartGameMutation();
   const [takeTurn] = useTakeTurnMutation();
 
@@ -53,8 +52,8 @@ const GameContextProvider = ({ children }: React.PropsWithChildren) => {
   return (
     <GameContext.Provider
       value={{
-        startGame,
         game,
+        startGame,
         joinGame,
         handleMove,
         error,
