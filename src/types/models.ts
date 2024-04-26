@@ -24,9 +24,9 @@ export type GameEntity = {
   is_draw: boolean | null;
 };
 
+// TODO: finish killing this distinction
 export type Game = Omit<GameEntity, "current_turn"> & {
   current_turn: 0 | 1 | null;
-  //self: 0 | 1; // client-side only
 };
 
 export type RoomEntity = {
